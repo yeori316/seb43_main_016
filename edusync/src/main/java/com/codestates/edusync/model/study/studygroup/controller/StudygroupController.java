@@ -22,7 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.util.Base64;
 import java.util.List;
 
 @Transactional
@@ -125,10 +128,16 @@ public class StudygroupController {
      */
     @GetMapping("/{studygroup-id}")
     public ResponseEntity getStudygroupDetail(Authentication authentication,
-                                              @PathVariable("studygroup-id") @Positive Long studygroupId) {
+                                              @PathVariable("studygroup-id") String studygroupId) throws UnsupportedEncodingException {
+
+        String decode = URLDecoder.decode(studygroupId, "UTF-8");
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] decodedBytes = decoder.decode(decode.getBytes());
+        long id = Long.valueOf(new String(decodedBytes));
+
         Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
-        Studygroup studygroup = studygroupService.get(studygroupId);
+        Studygroup studygroup = studygroupService.get(id);
         StudygroupResponseDto responseDto =
                 studygroupMapper.StudygroupToStudygroupResponseDto(
                         studygroup,
