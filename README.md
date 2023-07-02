@@ -1,15 +1,56 @@
-<h1>EduSync</h1>
+<h1>EduSync Refactoring</h1>
 스터디 모집 & 관리 플랫폼
+<br><br>
+기존 <a href="https://www.edusync.site">프론트 배포</a> / <a href="https://wish17.store">백엔드 배포</a>
+
 <br>
-프론트엔드 배포 주소 : https://www.edusync.site/
+
+리팩토링 <a href="http://dt8ncql3gs8bu.cloudfront.net">프론트 배포</a> / 
+<a href="http://ec2-15-165-204-189.ap-northeast-2.compute.amazonaws.com:8080">백엔드 배포</a>
+
 <br>
-백엔드 배포 주소 : https://wish17.store/
+
+## Refactoring 목표
+1. DB 정규화 - 진행중
+2. 클린 코딩
+3. AWS S3 이미지 저장
+4. URL 쿼리 스트링 난독화
+5. 테스트 코드 작성
+6. 부하 테스트
+
+<br>
+
+## Refactoring 멤버
+<table>
+    <thead>
+        <tr>
+            <th align="center">FE</th>
+            <th align="center">BE</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center"><a href="https://github.com/Whaleinmilktea"><img src="https://avatars.githubusercontent.com/u/109408848?v=4" alt="강하성" style="max-width: 10%;"></a></td>
+            <td align="center"><a href="https://github.com/yeori316"><img src="https://avatars.githubusercontent.com/u/78740368?v=4" alt="양도열" style="max-width: 10%;"></a></td>
+        </tr>
+        <tr>
+            <td align="center"><a href="https://whaleinmilktea.tistory.com/">강하성</a></td>
+            <td align="center"><a href="https://velog.io/@yeori316">양도열</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
+
+***
 
 ## 프로젝트 기간 및 소개
 > 프로젝트 기간 : 2023.04.28 ~ 2023.05.25
 >
 > 프로젝트 소개
 > Edusync는 자신이 원하는 IT 분야의 스터디 그룹을 찾고, 스터디 그룹원의 모집 / 구성 / 관리를 돕는 플랫폼입니다.
+
+<br>
 
 ## 팀원 소개
 - 이미지 누르면 GitHub 주소로 연결됩니다.
@@ -145,7 +186,7 @@
 
 <br>
 
-## 주요 기능
+## 주요 기능 - <a href="https://github.com/yeori316/seb43_main_016/blob/main/EduSync_Manual.pdf">매뉴얼</a>
 #### 👩‍💻 회원가입 & 로그인
 - Form 회원가입 및 로그인을 지원합니다.
 - 소셜 회원가입 및 로그인을 지원합니다.
@@ -162,9 +203,9 @@
 - 타 회원이 등록한 모집 글에 댓글로 의견을 남길 수 있습니다.
 - 스터디 목록을 자신이 원하는 필터에 따라 재정렬할 수 있습니다.
 #### 👑 권한에 따른 예외처리
-- 스터디장은 스터디 대기 인원 승인, 스터디원 강제 탈퇴 등의 권한을 갖고 있습니다.
-- 스터디장은 스터디 그룹원에게 자신의 권한은 위임할 수 있습니다.
-- 스터디장은 스터디를 해체할 수 있으며, 스터디장은 스스로 스터디 탈퇴가 불가능합니다.
+- 스터디 리더는 스터디 가입신청 승인 / 거부, 스터디 멤버 강퇴 등의 권한을 갖고 있습니다.
+- 스터디 리더는 스터디를 해체할 수 있으며, 리더는 스스로 스터디 탈퇴가 불가능합니다.
+- 스터디 리더는 스터디 그룹 내에 다른 멤버에게 리더 권한을 위임할 수 있습니다.
 
 #### 🗓️ 캘린더
 - 자신이 속한 스터디의 일정을 조회할 수 있습니다.
@@ -172,7 +213,17 @@
 
 <br>
 
-### 디렉토리 구조
+## DB ERD
+![image](https://github.com/wish9/EduSync_Project/assets/120456261/cf6fef12-33a2-48e3-80ff-7ff2291bdf6a)
+
+<br>
+
+## <a href="https://documenter.getpostman.com/view/25534184/2s93eU3EHc">API 명세서</a>
+
+
+<br>
+
+## 디렉토리 구조
 ```bash
 ├── README.md
 ├── .gitignore
@@ -259,7 +310,7 @@ $ npm run preview
 
 <br>
 
-### Git Convention
+## Git Convention
 ***Commit Message***
 
 |  Message   | 설명                                                  |
