@@ -15,18 +15,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Transactional
 @RequiredArgsConstructor
-@Validated
 @RestController
+@RequestMapping("/studygroup")
+@Validated
 public class StudygroupController {
     private static final String STUDYGROUP_DEFAULT_URI = "/studygroup";
     private final StudygroupMapper studygroupMapper;
@@ -35,15 +38,17 @@ public class StudygroupController {
 
     /**
      * 스터디 모집 & 등록
+     * @param authentication
      * @param postDto
      * @return
      */
-    @PostMapping(STUDYGROUP_DEFAULT_URI)
+    @PostMapping
     public ResponseEntity postStudygroup(Authentication authentication,
                                          @Valid @RequestBody StudygroupDto.Post postDto) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
         Studygroup studygroup = studygroupMapper.StudygroupDtoPostToStudygroup(postDto);
-        studygroup = studygroupService.create(studygroup, authentication.getPrincipal().toString());
+        studygroup = studygroupService.create(studygroup, loginMember);
         URI location = UriCreator.createUri(STUDYGROUP_DEFAULT_URI, studygroup.getId());
 
         return ResponseEntity.created(location).build();
@@ -51,17 +56,19 @@ public class StudygroupController {
 
     /**
      * 스터디 모집 & 수정
+     * @param authentication
      * @param patchDto
      * @return
      * @throws Exception
      */
-    @PatchMapping(STUDYGROUP_DEFAULT_URI + "/{studygroup-id}")
+    @PatchMapping("/{studygroup-id}")
     public ResponseEntity patchStudygroup(Authentication authentication,
                                           @Positive @PathVariable("studygroup-id") Long studygroupId,
                                           @Valid @RequestBody StudygroupDto.Patch patchDto) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
         Studygroup studygroup = studygroupMapper.StudygroupDtoPatchToStudygroup(studygroupId, patchDto);
-        studygroup = studygroupService.update(authentication.getName(), studygroup);
+        studygroup = studygroupService.update(loginMember.getEmail(), studygroup);
 
         URI location = UriCreator.createUri(STUDYGROUP_DEFAULT_URI, studygroup.getId());
         HttpHeaders headers = new HttpHeaders();
@@ -71,15 +78,36 @@ public class StudygroupController {
     }
 
     /**
+     * 스터디 그룹 이미지 수정
+     * @param authentication
+     * @param studygroupId
+     * @param file
+     * @return
+     */
+    @PatchMapping("/{studygroup-id}/image")
+    public ResponseEntity patchStudygroupImage(Authentication authentication,
+                                               @Positive @PathVariable("studygroup-id") Long studygroupId,
+                                               @RequestPart(value="image") MultipartFile file) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
+        Studygroup studygroup = studygroupService.imageSave(loginMember.getEmail(), studygroupId, file);
+
+        URI location = UriCreator.createUri(STUDYGROUP_DEFAULT_URI, studygroup.getId());
+
+        return ResponseEntity.created(location).build();
+    }
+
+    /**
      * 스터디 모집 상태 수정(모집중 - 모집완료)
+     * @param authentication
      * @param studygroupId
      * @return
      */
-    @PatchMapping(STUDYGROUP_DEFAULT_URI + "/{studygroup-id}/status")
+    @PatchMapping("/{studygroup-id}/status")
     public ResponseEntity patchStudygroupStatus(Authentication authentication,
                                                 @PathVariable("studygroup-id") @Positive Long studygroupId) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
-        boolean status = studygroupService.updateStatus(authentication.getName(), studygroupId);
+        boolean status = studygroupService.updateStatus(loginMember.getEmail(), studygroupId);
         StudygroupResponseDto.Status statusDto = studygroupMapper.statusDto(status);
 
         URI location = UriCreator.createUri(STUDYGROUP_DEFAULT_URI, studygroupId);
@@ -91,16 +119,21 @@ public class StudygroupController {
 
     /**
      * 스터디 조회
+     * @param authentication
      * @param studygroupId
      * @return
      */
-    @GetMapping(STUDYGROUP_DEFAULT_URI + "/{studygroup-id}")
+    @GetMapping("/{studygroup-id}")
     public ResponseEntity getStudygroupDetail(Authentication authentication,
                                               @PathVariable("studygroup-id") @Positive Long studygroupId) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
-        Member member = memberUtils.get(authentication.getPrincipal().toString());
         Studygroup studygroup = studygroupService.get(studygroupId);
-        StudygroupResponseDto responseDto = studygroupMapper.StudygroupToStudygroupResponseDto(studygroup, member.getNickName());
+        StudygroupResponseDto responseDto =
+                studygroupMapper.StudygroupToStudygroupResponseDto(
+                        studygroup,
+                        loginMember.getNickName()
+                );
 
         return ResponseEntity.ok(responseDto);
     }
@@ -139,13 +172,16 @@ public class StudygroupController {
 
     /**
      * 스터디 삭제
+     * @param authentication
      * @param studygroupId
      * @return
      */
-    @DeleteMapping(STUDYGROUP_DEFAULT_URI + "/{studygroup-id}")
+    @DeleteMapping("/{studygroup-id}")
     public ResponseEntity deleteStudygroup(Authentication authentication,
                                            @PathVariable("studygroup-id") @Positive Long studygroupId) {
-        studygroupService.delete(authentication.getName(), studygroupId);
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
+
+        studygroupService.delete(loginMember.getEmail(), studygroupId);
         return ResponseEntity.noContent().build();
     }
 
@@ -153,14 +189,20 @@ public class StudygroupController {
      * 스터디 리더 권한 이전
      * @param authentication
      * @param studygroupId
+     * @param patchLeader
      * @return
      */
-    @PatchMapping(STUDYGROUP_DEFAULT_URI + "/{studygroup-id}/privileges")
+    @PatchMapping("/{studygroup-id}/privileges")
     public ResponseEntity patchStudygroupLeader(Authentication authentication,
                                                 @PathVariable("studygroup-id") @Positive Long studygroupId,
                                                 @RequestBody StudygroupDto.PatchLeader patchLeader) {
+        Member loginMember = memberUtils.getLoggedInWithAuthenticationCheck(authentication);
 
-        studygroupService.patchLeader(authentication.getName(), studygroupId, patchLeader.getNickName());
+        studygroupService.patchLeader(
+                loginMember.getEmail(),
+                studygroupId,
+                patchLeader.getNickName()
+        );
         return ResponseEntity.ok().build();
     }
 }

@@ -2,6 +2,8 @@ package com.codestates.edusync.model.member.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.utils.AwsS3Service;
+import com.codestates.edusync.model.member.utils.NickNameValidationUtility;
 import com.codestates.edusync.security.auth.utils.CustomAuthorityUtils;
 import com.codestates.edusync.model.common.utils.MemberUtils;
 import com.codestates.edusync.model.member.entity.Member;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,8 +34,12 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final CustomAuthorityUtils authorityUtils;
     private final MemberUtils memberUtils;
+    private final NickNameValidationUtility nickNameValidationUtility;
+    private final AwsS3Service awsS3Service;
 
     public Member createMember(Member member) {
+        nickNameValidationUtility.checkValidNickName(member.getNickName());
+
         Optional<Member> optionalMember =
                 memberRepository.findByEmail(member.getEmail());
         if(optionalMember.isPresent()){
@@ -56,7 +63,7 @@ public class MemberService {
         member.setWithMe("");
 
         if (member.getProfileImage() == null || member.getProfileImage().isEmpty()) {
-            member.setProfileImage("https://avatars.githubusercontent.com/u/120456261?v=4");
+            member.setProfileImage("https://www.gravatar.com/avatar/HASH");
         }
 
         Member savedMember = memberRepository.save(member);
@@ -151,5 +158,12 @@ public class MemberService {
         }
 
         return member;
+    }
+
+    public Member imageSave(Long memberId, MultipartFile image) {
+        Member member = memberUtils.getById(memberId);
+        String imageUrl = awsS3Service.uploadImage(image, "/profile");
+        member.setProfileImage(imageUrl);
+        return memberRepository.save(member);
     }
 }
