@@ -1,134 +1,97 @@
-create table if not exists member
-(
-    id            bigint auto_increment,
-    uuid          varchar(50),
-    email         varchar(100),
-    nick_name     varchar(100),
-    profile_image blob,
-    password      varchar(100),
-    address       varchar(200),
-    grade         varchar(50),
+create table if not exists member (
+    id            bigint primary key auto_increment not null,
+    uuid          varchar(100) not null,
+    email         varchar(100) not null unique,
+    password      varchar(100) not null,
+    nick_name     varchar(100) not null unique,
+    image         blob,
     about_me      TEXT,
     with_me       TEXT,
-    member_status varchar(50),
-    provider      varchar(50),
-    modified_at   timestamp,
+    status        varchar(50) not null,
+    roles         varchar(50) not null,
+    provider      varchar(50) not null,
+    created_at    timestamp not null default now(),
+    modified_at   timestamp not null default now(),
+    deleted_at    timestamp
+);
+
+create table if not exists study_join (
+    id            bigint primary key auto_increment not null,
+    is_approved   boolean not null default false,
+    member_id     bigint not null,
+    study_id      bigint not null,
+    created_at    timestamp not null default now(),
+    modified_at   timestamp not null default now()
+);
+
+create table if not exists study (
+    id              bigint primary key auto_increment not null,
+    study_name      varchar(100) not null,
+    image           blob,
+    member_min      int,
+    member_max      int,
+    platform        varchar(100) not null,
+    introduction    TEXT not null,
+    is_requited     boolean default false,
+    member_id       bigint not null,
+    created_at      timestamp not null default now(),
+    modified_at     timestamp not null default now()
+);
+
+create table if not exists day_of_week (
+    id          bigint primary key auto_increment not null,
+    study_id    bigint not null,
+    sunday      boolean not null default false,
+    monday      boolean not null default false,
+    tuesday     boolean not null default false,
+    wednesday   boolean not null default false,
+    thursday    boolean not null default false,
+    friday      boolean not null default false,
+    saturday    boolean not null default false
+);
+
+create table if not exists schedule (
+    id              bigint primary key auto_increment not null,
+    title           varchar(100) not null,
+    description     varchar(255),
+    color           varchar(50),
+    start_day       date not null,
+    end_day         date not null,
+    start_time      time not null,
+    end_time        time not null,
+    member_id       bigint not null,
+    study_id        bigint not null
+);
+
+create table if not exists comment (
+    id            bigint primary key auto_increment not null,
+    content       varchar(255) not null,
+    member_id     bigint not null,
+    study_id      bigint not null,
     created_at    timestamp,
+    modified_at   timestamp
+);
 
-    constraint pk_member_id primary key (id),
-    constraint uk_member_email unique (email),
-    constraint uk_member_nick_name unique (nick_name)
-    );
+create table if not exists tag_ref (
+    id          bigint primary key auto_increment not null,
+    study_id    bigint not null,
+    tag_id      bigint not null
+);
 
-create table if not exists member_roles
-(
-    member_id bigint not null,
-    roles     varchar(30)
-    );
+create table if not exists tag (
+    id            bigint primary key auto_increment not null,
+    tag_value     varchar(100) not null
+);
 
-create table if not exists studygroup_join
-(
-    id            bigint auto_increment,
-    is_approved   boolean default false,
+alter table study add foreign key (member_id) references member (id);
+alter table study_join add foreign key (member_id) references member (id);
+alter table schedule add foreign key (member_id) references member (id);
+alter table comment add foreign key (member_id) references member (id);
 
-    member_id     bigint,
-    studygroup_id bigint,
+alter table study_join add foreign key (study_id) references study (id);
+alter table day_of_week add foreign key (study_id) references study (id);
+alter table schedule add foreign key (study_id) references study (id);
+alter table comment add foreign key (study_id) references study (id);
+alter table tag_ref add foreign key (study_id) references study (id);
 
-    constraint pk_studygroup_join_id primary key (id)
-    );
-
-create table if not exists studygroup
-(
-    id                   bigint auto_increment,
-    study_name           varchar(50),
-    studygroup_image     blob,
-    address              varchar(200),
-    days_of_week         varchar(50),
-    study_period_start   varchar(100),
-    study_period_end     varchar(100),
-    study_time_start     varchar(100),
-    study_time_end       varchar(100),
-    introduction         TEXT,
-    member_count_min     int,
-    member_count_max     int,
-    member_count_current int,
-    platform             varchar(50),
-    is_requited          boolean,
-    modified_at          timestamp,
-    created_at           timestamp,
-
-    leader_member_id       bigint,
-
-    constraint pk_studygroup_id primary key (id)
-    );
-
-create table if not exists search_tag
-(
-    id            bigint auto_increment,
-    tag_key       varchar(20),
-    tag_value     varchar(100),
-
-    studygroup_id bigint,
-
-    constraint pk_search_tag_id primary key (id)
-    );
-
-create table if not exists studygroup_post_comment
-(
-    id            bigint auto_increment,
-    content       varchar(200),
-    modified_at   timestamp,
-    created_at    timestamp,
-
-    studygroup_id bigint,
-    member_id     bigint,
-
-    constraint pk_studygroup_post_comment_id primary key (id)
-    );
-
-create table if not exists time_schedule
-(
-    id            bigint auto_increment,
-    title         varchar(100),
-    content       varchar(200),
-    start_time    timestamp,
-    end_time      timestamp,
-
-    member_id     bigint,
-    studygroup_id bigint,
-
-    constraint pk_time_schedule_id primary key (id)
-    );
-
-alter table member_roles
-    add constraint fk_member_roles_member_id
-        foreign key (member_id) references member (id);
-
-alter table studygroup_post_comment
-    add constraint fk_studygroup_post_comment_member_id
-        foreign key (member_id) references member (id);
-alter table studygroup_post_comment
-    add constraint fk_studygroup_post_comment_studygroup_id
-        foreign key (studygroup_id) references studygroup (id);
-
-alter table studygroup_join
-    add constraint fk_studygroup_join_member_id
-        foreign key (member_id) references member (id);
-alter table studygroup_join
-    add constraint fk_studygroup_join_studygroup_id
-        foreign key (studygroup_id) references studygroup (id);
-
-alter table search_tag
-    add constraint fk_search_tag_studygroup_id
-        foreign key (studygroup_id) references studygroup (id);
-
-alter table time_schedule
-    add constraint fk_time_schedule_member_id
-        foreign key (member_id) references member (id);
-alter table time_schedule
-    add constraint fk_time_schedule_studygroup_id
-        foreign key (studygroup_id) references studygroup (id);
-
-alter table studygroup
-    add constraint fk_studygroup_leader_member_id
-        foreign key (leader_member_id) references member (id);
+alter table tag_ref add foreign key (tag_id) references tag (id);
