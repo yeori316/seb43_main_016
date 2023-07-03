@@ -66,7 +66,7 @@ public class Member extends AuditEntity {
         MEMBER_QUIT("quit");
 
         @Getter
-        private String status;
+        private final String status;
 
         Status(String status) {
             this.status = status;
@@ -80,7 +80,7 @@ public class Member extends AuditEntity {
         NAVER("naver");
 
         @Getter
-        private String provider;
+        private final String provider;
 
         Provider(String provider) {
             this.provider = provider;

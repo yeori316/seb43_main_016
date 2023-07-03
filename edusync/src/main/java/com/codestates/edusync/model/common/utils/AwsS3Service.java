@@ -21,8 +21,6 @@ public class AwsS3Service {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-//    private final String bucketMember = "edusync.test/profile";
-//    private final String bucketStrudy = "edusync.test/study";
 
     public String uploadImage(MultipartFile file, String bucketPath) {
         String fileName = createFileName(file.getOriginalFilename());
@@ -82,12 +80,5 @@ public class AwsS3Service {
      */
     public String getFileUrl(String fileName, String bucketPath) {
         return amazonS3.getUrl(bucketPath, fileName).toString();
-    }
-
-    /**
-     * 이미지 삭제
-     */
-    public void deleteFile(String fileName, String bucketPath) {
-        amazonS3.deleteObject(bucketPath, fileName);
     }
 }

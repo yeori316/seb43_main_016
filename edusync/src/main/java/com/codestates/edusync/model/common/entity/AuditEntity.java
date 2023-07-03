@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public abstract class Auditable extends BaseEntity {
+public abstract class AuditEntity extends BaseEntity {
     @CreatedDate // Entity 생성시간 자동 저장
-    @Column(name = "created_at", updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate // 조회한 Entity의 값을 변경할 때 시간 자동 저장(수정)
-    @Column(name = "modified_at")
+    @Column(nullable = false)
     private LocalDateTime modifiedAt;
 }
