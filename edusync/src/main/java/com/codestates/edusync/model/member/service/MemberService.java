@@ -12,11 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Transactional
@@ -67,11 +69,6 @@ public class MemberService {
         List<String> roles = authorityUtils.createRoles(member.getEmail());
         member.setRoles(roles);
 
-        member.setUuid(UUID.randomUUID().toString());
-        member.setImage("https://www.gravatar.com/avatar/HASH");
-        member.setStatus(Member.Status.MEMBER_ACTIVE);
-        member.setProvider(Member.Provider.LOCAL);
-
         return repository.save(member);
     }
 
@@ -80,10 +77,10 @@ public class MemberService {
      * @param member Member
      * @param email String
      */
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateNickName(Member member, String email) {
 
-        Member findMember = find(email);
+        Member findMember = get(email);
 
         // 닉네임 중복 체크
         String nickName = member.getNickName();
@@ -110,10 +107,10 @@ public class MemberService {
      * @param member Member
      * @param email String
      */
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updatePassword(Member member, String email) {
 
-        Member findMember = find(email);
+        Member findMember = get(email);
 
         Optional.ofNullable(member.getPassword())
                 .ifPresent(password -> {
@@ -130,9 +127,9 @@ public class MemberService {
      * @param member Member
      * @param email String
      */
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateAboutMe(Member member, String email) {
-        Member findMember = find(email);
+        Member findMember = get(email);
         Optional.ofNullable(member.getAboutMe()).ifPresent(findMember::setAboutMe);
         repository.save(findMember);
     }
@@ -142,9 +139,9 @@ public class MemberService {
      * @param member Member
      * @param email String
      */
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateWithMe(Member member, String email) {
-        Member findMember = find(email);
+        Member findMember = get(email);
         Optional.ofNullable(member.getWithMe()).ifPresent(findMember::setWithMe);
         repository.save(findMember);
     }
@@ -155,18 +152,18 @@ public class MemberService {
      * @param image Image
      */
     public void updateImage(String email, MultipartFile image) {
-        Member findMember = find(email);
+        Member findMember = get(email);
         findMember.setImage(awsS3Service.uploadImage(image, s3BucketPath));
         repository.save(findMember);
     }
 
     /**
-     * 회원 조회
+     * 회원 조회 - 이메일
      * @param email String
      * @return Member
      */
-    public Member find(String email) {
-
+    @Transactional(readOnly = true)
+    public Member get(String email) {
         Optional<Member> optionalMember = repository.findByEmail(email);
 
         Member findMember = optionalMember.orElseThrow(() ->
@@ -182,11 +179,32 @@ public class MemberService {
     }
 
     /**
+     * 회원 조회 - 닉네임
+     * @param nickName
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public Member getNickName(String nickName) {
+        Optional<Member> optionalMember = repository.findByNickName(nickName);
+
+        Member findMember = optionalMember.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", nickName)));
+
+        if (findMember.getStatus().equals(Member.Status.MEMBER_SLEEP)) {
+            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", nickName));
+        } else if (findMember.getStatus().equals(Member.Status.MEMBER_QUIT)) {
+            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", nickName));
+        }
+
+        return findMember;
+    }
+
+    /**
      * 회원 탈퇴(소프트 삭제)
      * @param email String
      */
     public void delete(String email) {
-        Member findMember = find(email);
+        Member findMember = get(email);
         findMember.setStatus(Member.Status.MEMBER_QUIT);
         repository.save(findMember);
     }
@@ -219,8 +237,9 @@ public class MemberService {
      * @param email String
      * @return boolean
      */
-    public boolean checkPassword(String password, String email){
-        return passwordEncoder.matches(password, find(email).getPassword());
+    @Transactional(readOnly = true)
+    public boolean checkPassword(String email, String password){
+        return passwordEncoder.matches(password, get(email).getPassword());
     }
 
     /**
@@ -228,9 +247,10 @@ public class MemberService {
      * @param email String
      * @return Map<String, String>
      */
+    @Transactional(readOnly = true)
     public Map<String, String> getProvider(String email){
 
-        Member findMember = find(email);
+        Member findMember = get(email);
 
         String provider;
 

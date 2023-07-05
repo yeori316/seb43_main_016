@@ -96,7 +96,7 @@ public class OAuth2MemberSuccessHandler extends SimpleUrlAuthenticationSuccessHa
         Member member = new Member();
         member.setEmail(email);
         member.setNickName(nickname);
-        member.setProfileImage(profileImage);
+        member.setImage(profileImage);
         List<String> roles = authorityUtils.createRoles(email);
         member.setRoles(roles);
         member.setProvider(provider);

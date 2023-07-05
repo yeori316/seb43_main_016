@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class NickNameCheckUtil implements MemberUtil {
+public class NickNameCheckUtil {
 
     public void validated(String nickName) {
         if (nickName != null) {

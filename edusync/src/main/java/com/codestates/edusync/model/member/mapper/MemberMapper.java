@@ -6,6 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberMapper {
@@ -19,9 +21,14 @@ public interface MemberMapper {
         if (memberPostDto == null) return null;
 
         Member member = new Member();
+
+        member.setUuid(UUID.randomUUID().toString());
         member.setEmail(memberPostDto.getEmail());
         member.setPassword(memberPostDto.getPassword());
         member.setNickName(memberPostDto.getNickName());
+        member.setImage("https://www.gravatar.com/avatar/HASH");
+        member.setStatus(Member.Status.MEMBER_ACTIVE);
+        member.setProvider(Member.Provider.LOCAL);
 
         return member;
     }

@@ -30,65 +30,65 @@ public class MemberController {
 
     /**
      * 회원 가입
-     * @param memberPostDto memberPostDto
+     * @param postDto MemberPostDto
      * @return String
      */
     @PostMapping
-    public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post memberPostDto) {
-        service.create(mapper.memberPostToMember(memberPostDto));
+    public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
+        service.create(mapper.memberPostToMember(postDto));
         return ResponseEntity.created(loginUri).build();
     }
 
     /**
      * 닉네임 수정
-     * @param authentication 토큰
-     * @param memberPatchNickNameDto memberPatchNickNameDto
-     * @return URI
+     * @param authentication Authentication
+     * @param patchNickNameDto MemberPatchNickNameDto
+     * @return String
      */
     @PatchMapping("/nickName")
     public ResponseEntity<String> patchNickName(Authentication authentication,
-                                             @Valid @RequestBody MemberDto.PatchNickName memberPatchNickNameDto) {
-        service.updateNickName(mapper.memberPatchNickNameToMember(memberPatchNickNameDto), authentication.getName());
-        return new ResponseEntity<>(HttpStatus.OK);
+                                                @Valid @RequestBody MemberDto.PatchNickName patchNickNameDto) {
+        service.updateNickName(mapper.memberPatchNickNameToMember(patchNickNameDto), authentication.getName());
+        return ResponseEntity.ok().build();
     }
 
     /**
      * 패스워드 수정
-     * @param authentication 토큰
-     * @param memberPatchPassDto memberPatchPassDto
-     * @return URI
+     * @param authentication Authentication
+     * @param patchPassDto MemberPatchPassDto
+     * @return String
      */
     @PatchMapping("/pass") // uri 변경 필요
     public ResponseEntity<String> patchPass(Authentication authentication,
-                                         @Valid @RequestBody MemberDto.PatchPassword memberPatchPassDto) {
-        service.updatePassword(mapper.memberPatchPasswordToMember(memberPatchPassDto), authentication.getName());
-        return new ResponseEntity<>(HttpStatus.OK);
+                                            @Valid @RequestBody MemberDto.PatchPassword patchPassDto) {
+        service.updatePassword(mapper.memberPatchPasswordToMember(patchPassDto), authentication.getName());
+        return ResponseEntity.ok().build();
     }
 
     /**
      * 자기소개 수정
      * @param authentication 토큰
-     * @param memberPatchAboutMeDto memberPatchAboutMeDto
+     * @param patchAboutMeDto memberPatchAboutMeDto
      * @return URI
      */
     @PatchMapping("/aboutme")
     public ResponseEntity<String> patchAboutMe(Authentication authentication,
-                                            @Valid @RequestBody MemberDto.PatchAboutMe memberPatchAboutMeDto) {
-        service.updateAboutMe(mapper.memberPatchAboutMeToMember(memberPatchAboutMeDto), authentication.getName());
-        return new ResponseEntity<>(HttpStatus.OK);
+                                               @Valid @RequestBody MemberDto.PatchAboutMe patchAboutMeDto) {
+        service.updateAboutMe(mapper.memberPatchAboutMeToMember(patchAboutMeDto), authentication.getName());
+        return ResponseEntity.ok().build();
     }
 
     /**
      * WithMe 수정
      * @param authentication 토큰
-     * @param memberPatchWithMeDto memberPatchWithMeDto
+     * @param patchWithMeDto memberPatchWithMeDto
      * @return URI
      */
     @PatchMapping("/withme")
     public ResponseEntity<String> patchWithMe(Authentication authentication,
-                                           @Valid @RequestBody MemberDto.PatchWithMe memberPatchWithMeDto) {
-        service.updateWithMe(mapper.memberPatchWithMeToMember(memberPatchWithMeDto), authentication.getName());
-        return new ResponseEntity<>(HttpStatus.OK);
+                                              @Valid @RequestBody MemberDto.PatchWithMe patchWithMeDto) {
+        service.updateWithMe(mapper.memberPatchWithMeToMember(patchWithMeDto), authentication.getName());
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -99,9 +99,9 @@ public class MemberController {
      */
     @PatchMapping("/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
-                                          @RequestPart(value="image") MultipartFile image) {
+                                             @RequestPart(value="image") MultipartFile image) {
         service.updateImage(authentication.getName(), image);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -113,7 +113,7 @@ public class MemberController {
     public ResponseEntity<MemberDto.Response> get(Authentication authentication) {
 
         MemberDto.Response responseDto =
-                mapper.memberToMemberResponse(service.find(authentication.getName()));
+                mapper.memberToMemberResponse(service.get(authentication.getName()));
 
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
@@ -126,7 +126,7 @@ public class MemberController {
     @DeleteMapping
     public ResponseEntity<URI> delete(Authentication authentication) {
         service.delete(authentication.getName());
-        return new ResponseEntity<>( HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -150,7 +150,7 @@ public class MemberController {
     public ResponseEntity<Object> checkPassword(Authentication authentication,
                                                 @RequestBody MemberDto.PatchPassword checkPassword) {
         return new ResponseEntity<>(
-                service.checkPassword(checkPassword.getPassword(), authentication.getName()) ?
+                service.checkPassword(authentication.getName(), checkPassword.getPassword()) ?
                         HttpStatus.OK : HttpStatus.UNAUTHORIZED);
     }
 
