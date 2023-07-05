@@ -53,12 +53,17 @@ public class Member extends AuditEntity {
     @Column(nullable = false)
     private Provider provider;
 
-    public Member(Long id, String nickName, String email, String image) {
-        super.id = id;
-        this.nickName = nickName;
-        this.email = email;
-        this.image = image;
-    }
+    @OneToMany(mappedBy = "leader", cascade = {PERSIST, MERGE})
+    private List<Study> leaders;
+
+    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
+    private List<StudyJoin> studyJoins;
+
+    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
+    private List<Schedule> schedules;
+
+    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
+    private List<Comment> comments;
 
     public enum Status {
         MEMBER_ACTIVE("active"),
@@ -86,17 +91,4 @@ public class Member extends AuditEntity {
             this.provider = provider;
         }
     }
-
-    @OneToMany(mappedBy = "leader", cascade = {PERSIST, MERGE})
-    private List<Study> leaders;
-
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, MERGE, REMOVE})
-    private List<StudyJoin> studyJoins;
-
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, MERGE, REMOVE})
-    private List<Schedule> schedules;
-
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, MERGE, REMOVE})
-    private List<Comment> comments;
-
 }

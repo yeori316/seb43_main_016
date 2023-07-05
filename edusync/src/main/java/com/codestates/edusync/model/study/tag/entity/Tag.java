@@ -15,8 +15,6 @@ import javax.persistence.Table;
 @Entity
 @Table
 public class Tag extends BaseEntity {
-
     @Column(nullable = false)
     private String value;
-
 }

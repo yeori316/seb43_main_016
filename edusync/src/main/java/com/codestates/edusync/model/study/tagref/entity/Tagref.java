@@ -18,7 +18,6 @@ import javax.persistence.Table;
 @Entity
 @Table
 public class Tagref extends BaseEntity {
-
     @ManyToOne
     @JoinColumn(name = "study_id")
     private Study study;
@@ -26,5 +25,4 @@ public class Tagref extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "tag_id")
     private Tag tag;
-
 }
