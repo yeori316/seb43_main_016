@@ -15,10 +15,8 @@ import javax.persistence.*;
 @Entity
 @Table
 public class Comment extends AuditEntity {
-
     @Column(nullable = false)
     private String content;
-
 
     @ManyToOne
     @JoinColumn(name = "study_id")
@@ -27,5 +25,4 @@ public class Comment extends AuditEntity {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
-
 }

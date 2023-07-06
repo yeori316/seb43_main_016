@@ -1,13 +1,15 @@
-package com.codestates.edusync.model.study.postcomment.dto;
+package com.codestates.edusync.model.study.comment.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 
-public class StudygroupPostCommentDto {
+public class CommentPostDto {
 
+    @AllArgsConstructor
     @NoArgsConstructor
     @Getter
     public static class Post {
@@ -15,9 +17,9 @@ public class StudygroupPostCommentDto {
         private String content;
     }
 
+    @AllArgsConstructor
     @NoArgsConstructor
     @Getter
-    @Setter
     public static class Patch {
         private Long id;
 
