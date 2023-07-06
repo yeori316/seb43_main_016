@@ -30,7 +30,6 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final AwsS3Service awsS3Service;
     private final NickNameCheckUtil nickNameCheckUtil;
-    private final String s3BucketPath = "/profile";
 
     /**
      * 회원 가입
@@ -153,7 +152,7 @@ public class MemberService {
      */
     public void updateImage(String email, MultipartFile image) {
         Member findMember = get(email);
-        findMember.setImage(awsS3Service.uploadImage(image, s3BucketPath));
+        findMember.setImage(awsS3Service.uploadImage(image, "/member"));
         repository.save(findMember);
     }
 

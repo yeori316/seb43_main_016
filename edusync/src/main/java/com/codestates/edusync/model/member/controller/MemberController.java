@@ -21,7 +21,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/members")
+@RequestMapping("/member")
 @Validated
 public class MemberController {
     private final MemberMapper mapper;
