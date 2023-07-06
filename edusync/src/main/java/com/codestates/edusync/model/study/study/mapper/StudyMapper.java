@@ -6,7 +6,7 @@ import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.tag.entity.Tag;
-import com.codestates.edusync.model.study.tagref.entity.Tagref;
+import com.codestates.edusync.model.study.tagref.entity.TagRef;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
@@ -29,7 +29,7 @@ public interface StudyMapper {
         study.setLeader(member);
         study.setStudyJoins(joinMapping(member, study));
         study.setSchedule(scheduleMapping(studyPostDto, member, study));
-        study.setTagrefs(tagMapping(studyPostDto.getTags(), study));
+        study.setTagRefs(tagMapping(studyPostDto.getTags(), study));
 
         return study;
     }
@@ -47,7 +47,7 @@ public interface StudyMapper {
         study.setIntroduction(studyPatchDto.getIntroduction());
 
         study.setSchedule(scheduleMapping(studyPatchDto, study));
-        study.setTagrefs(tagMapping(studyPatchDto.getTags(), study));
+        study.setTagRefs(tagMapping(studyPatchDto.getTags(), study));
 
         return study;
     }
@@ -68,15 +68,30 @@ public interface StudyMapper {
         response.setDayOfWeek(study.getSchedule().getDayOfWeek().stream().map(e -> e ? 1 : 0).collect(Collectors.toList()));
         response.setStartTime(study.getSchedule().getStartTime());
         response.setEndTime(study.getSchedule().getEndTime());
-        response.setTags(study.getTagrefs().stream().map(e -> e.getTag().getValue()).collect(Collectors.toList()));
+        response.setTags(study.getTagRefs().stream().map(e -> e.getTag().getValue()).collect(Collectors.toList()));
         response.setLeaderNickName(study.getLeader().getNickName());
         response.setIsLeader(isLeader);
 
         return response;
     }
 
-    default List<StudyDto.list> studyListToResponseList() {
+    default List<StudyDto.Summary> studyListToResponseList(List<Study> studyPage) {
+        return studyPage.stream().map(this::studyToSummary).collect(Collectors.toList());
+    }
 
+    default StudyDto.Summary studyToSummary(Study study) {
+        StudyDto.Summary studySummary = new StudyDto.Summary();
+
+        studySummary.setId(study.getId());
+        studySummary.setImage(study.getImage());
+        studySummary.setTitle(study.getStudyName());
+        studySummary.setTagValues(tagRefsToTagList(study.getTagRefs()));
+
+        return studySummary;
+    }
+
+    default List<String> tagRefsToTagList(List<TagRef> tagRefs) {
+        return tagRefs.stream().map(TagRef::getTag).map(Tag::getValue).collect(Collectors.toList());
     }
 
     default List<StudyJoin> joinMapping(Member member, Study study) {
@@ -120,13 +135,13 @@ public interface StudyMapper {
         return schedule;
     }
 
-    default List<Tagref> tagMapping(String tagValue, Study study) {
+    default List<TagRef> tagMapping(String tagValue, Study study) {
         if (tagValue == null) return null;
 
         Tag tag = new Tag();
         tag.setValue(tagValue);
 
-        Tagref tagRef = new Tagref();
+        TagRef tagRef = new TagRef();
         tagRef.setTag(tag);
         tagRef.setStudy(study);
 

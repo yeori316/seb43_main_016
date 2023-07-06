@@ -1,6 +1,6 @@
 package com.codestates.edusync.model.study.study.controller;
 
-import com.codestates.edusync.model.common.dto.MultiResponseDto;
+import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.common.utils.UriCreator;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -41,7 +41,7 @@ public class StudyController {
      */
     @PostMapping
     public ResponseEntity<URI> post(Authentication authentication,
-                               @Valid @RequestBody StudyDto.Post postDto) {
+                                    @Valid @RequestBody StudyDto.Post postDto) {
 
         Study study = mapper.studyPostToStudy(postDto, service.getMember(authentication.getName()));
         URI uri = UriCreator.createUri(defaultUrl, service.create(study).getId());
@@ -157,39 +157,25 @@ public class StudyController {
         return ResponseEntity.ok(response);
     }
 
-
     /**
      * 스터디 리스트
      * @param page
      * @param size
      * @return
      */
-    @GetMapping("s")
-    public ResponseEntity getList(@RequestParam("page") @Positive Integer page,
-                                  @RequestParam("size") @Positive Integer size){
+    @GetMapping("/list")
+    public ResponseEntity<CommonDto.ResponsePage<List<StudyDto.Summary>>> getList(
+            @RequestParam("page") @Positive Integer page,
+            @RequestParam("size") @Positive Integer size,
+            @RequestParam(value = "sort", required = false) String sort){
 
-        Page<Study> studyPage = service.getWithPaging(page-1, size);
+        Page<Study> studyPage = service.getList(page-1, size, sort);
 
-        List<StudyDto.list> responseList =
+        List<StudyDto.Summary> responseList =
                 mapper.studyListToResponseList(studyPage.getContent());
 
-        return ResponseEntity.ok(new MultiResponseDto<>(responseList, studyPage));
+        return ResponseEntity.ok(new CommonDto.ResponsePage<>(responseList, studyPage));
     }
-
-    @GetMapping(STUDYGROUP_DEFAULT_URI + "s/order")
-    public ResponseEntity getStudygroupPage(@RequestParam("page") @Positive Integer page,
-                                            @RequestParam("size") @Positive Integer size,
-                                            @RequestParam("order") String order,
-                                            @RequestParam("isAscending") Boolean isAscending){
-
-        Page<Study> studygroupPage = service.getWithPagingAndOrder(page-1, size, order, isAscending);
-
-        List<StudyResponseDto.DtoList> responseDtoList =
-                mapper.StudygroupListToStudygroupResponseDtoList(studygroupPage.getContent());
-
-        return ResponseEntity.ok(new MultiResponseDto<>(responseDtoList,studygroupPage));
-    }
-
 
     /**
      * 스터디 삭제

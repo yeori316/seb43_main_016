@@ -5,7 +5,7 @@ import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.schedule.entity.Schedule;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
-import com.codestates.edusync.model.study.tagref.entity.Tagref;
+import com.codestates.edusync.model.study.tagref.entity.TagRef;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -57,5 +57,5 @@ public class Study extends AuditEntity {
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "study", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
-    private List<Tagref> tagrefs;
+    private List<TagRef> tagRefs;
 }

@@ -138,33 +138,14 @@ public class StudyDto {
     /**
      * 스터디 조회
      */
+    @AllArgsConstructor
     @NoArgsConstructor
     @Getter
     @Setter
-    public static class list {
-        private String id;
+    public static class Summary {
+        private Long id;
         private String image;
         private String title;
         private List<String> tagValues;
-    }
-
-    @Getter
-    public static class beStudyList<T> {
-        private List<T> beStudys;
-
-        public beStudyList(List<T> beStudys) {
-            this.beStudys = beStudys;
-        }
-    }
-
-    @Getter
-    public static class studyList<T> {
-        private List<T> leaders;
-        private List<T> members;
-
-        public studyList(List<T> leaders, List<T> members) {
-            this.leaders = leaders;
-            this.members = members;
-        }
     }
 }

@@ -7,7 +7,7 @@ import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.repository.StudyRepository;
-import com.codestates.edusync.model.study.study.utils.StudyGetOrder;
+import com.codestates.edusync.model.study.study.utils.SortOrder;
 import com.codestates.edusync.model.study.studyjoin.service.StudyJoinService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,6 @@ public class StudyService {
     private final MemberService memberService;
     private final StudyJoinService studyJoinService;
     private final AwsS3Service awsS3Service;
-    private final String s3BucketPath = "/study";
 
     /**
      * 스터디 등록
@@ -62,7 +61,7 @@ public class StudyService {
         Optional.ofNullable(study.getPlatform()).ifPresent(findStudy::setPlatform);
         Optional.ofNullable(study.getIntroduction()).ifPresent(findStudy::setIntroduction);
         Optional.ofNullable(study.getSchedule()).ifPresent(findStudy::setSchedule);
-        Optional.ofNullable(study.getTagrefs()).ifPresent(findStudy::setTagrefs);
+        Optional.ofNullable(study.getTagRefs()).ifPresent(findStudy::setTagRefs);
 
         repository.save(findStudy);
     }
@@ -83,7 +82,7 @@ public class StudyService {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        findStudy.setImage(awsS3Service.uploadImage(image, s3BucketPath));
+        findStudy.setImage(awsS3Service.uploadImage(image, "/study"));
 
         repository.save(findStudy);
     }
@@ -144,58 +143,19 @@ public class StudyService {
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
     }
 
-
-
-
-
+    /**
+     * 스터디 리스트 조회
+     * @param page
+     * @param size
+     * @param sort
+     * @return
+     */
     @Transactional(readOnly = true)
-    public Page<Study> getWithPaging(Integer page, Integer size) {
-
-        StudyGetOrder orderEnum = StudyGetOrder.valueOfOrder("기본값");
-        String convertedVariable = orderEnum.getVariable();
-
-        // 오름차순과 내림차순 구분
-        Sort sort = Sort.by(convertedVariable);
-
-        if( false )   {
-            sort;
-        } else {
-            sort.descending();
-        }
-
-        return repository.findAll(PageRequest.of(page, size, sort));
+    public Page<Study> getList(Integer page, Integer size, String sort) {
+        return repository.findAll(
+                PageRequest.of(page, size, Sort.by(SortOrder.getString(sort)).descending())
+        );
     }
-
-
-    @Transactional(readOnly = true)
-    public Page<Study> getWithPagingAndOrder(Integer page, Integer size, String order, Boolean isAscending) {
-
-        StudyGetOrder orderEnum = StudyGetOrder.valueOfOrder(order);
-        String convertedVariable = orderEnum.getVariable();
-
-        // 오름차순과 내림차순 구분
-        Sort sort = Sort.by(convertedVariable);
-        if( isAscending ) {
-            sort;
-        } else {
-            sort.descending();
-        }
-
-        return repository.findAll(PageRequest.of(page, size, sort));
-    }
-
-
-
-
-
-    @Transactional(readOnly = true)
-    public List<Study> getLeaderStudygroupList(Member loginMember) {
-        return repository.findAllByLeaderMemberId(loginMember.getId());
-    }
-
-
-
-
 
     /**
      * 스터디 삭제
@@ -230,5 +190,15 @@ public class StudyService {
      */
     public int getStudyMemberCount(Long studyId) {
         return studyJoinService.getStudyMemberCount(studyId);
+    }
+
+    /**
+     * 리더인 스터디 리스트 조회
+     * @param email
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public List<Study> getLeaderStudyList(String email) {
+        return repository.findAllByLeaderMemberId(getMember(email).getId());
     }
 }
