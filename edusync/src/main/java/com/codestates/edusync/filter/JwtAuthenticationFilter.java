@@ -1,15 +1,10 @@
 package com.codestates.edusync.filter;
 
-import com.codestates.edusync.exception.BusinessLogicException;
-import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.security.auth.dto.LoginDto;
-import com.codestates.edusync.security.auth.jwt.JwtTokenizer;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.security.auth.token.TokenService;
-import com.codestates.edusync.security.auth.utils.ErrorResponder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,9 +15,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 // 로그인 인증 요청을 처리하는 Custom Security Filter
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -54,8 +46,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             Authentication authResult) throws ServletException, IOException {
         Member member = (Member) authResult.getPrincipal();
 
-        if(!member.getMemberStatus().equals(Member.MemberStatus.MEMBER_ACTIVE)){
-            member.setMemberStatus(Member.MemberStatus.MEMBER_ACTIVE);
+        if(!member.getStatus().equals(Member.Status.MEMBER_ACTIVE)){
+            member.setStatus(Member.Status.MEMBER_ACTIVE);
         }
 
         String accessToken = tokenService.delegateAccessToken(member);

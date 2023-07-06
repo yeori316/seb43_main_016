@@ -2,8 +2,8 @@ package com.codestates.edusync.model.common.utils;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.study.studygroup.entity.Studygroup;
-import com.codestates.edusync.model.study.studygroup.repository.StudygroupRepository;
+import com.codestates.edusync.model.study.study.entity.Study;
+import com.codestates.edusync.model.study.study.repository.StudyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,35 +11,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Component
-public class VerifyStudygroupUtils implements VerifyStudygroupManager {
-    private final StudygroupRepository studygroupRepository;
+public class VerifyStudygroupUtils {
+    private final StudyRepository studyRepository;
 
-    @Override
-    public Studygroup findVerifyStudygroup(Long studygroupId) {
-        return studygroupRepository.findById(studygroupId)
+    // studyService.get()
+    public Study findVerifyStudygroup(Long studygroupId) {
+        return studyRepository.findById(studygroupId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
     }
 
-    @Override
     public boolean isMemberLeaderOfStudygroup(String email, Long studygroupId) {
-        Studygroup findStudygroup = findVerifyStudygroup(studygroupId);
-        return findStudygroup.getLeaderMember().getEmail().equals(email);
-    }
+        Study findStudy = studyRepository.findById(studygroupId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-    @Override
-    public void studygroupLeaderCheck(String email, Long studygroupId) {
-        Studygroup studygroup = findVerifyStudygroup(studygroupId);
-
-        if (!studygroup.getLeaderMember().getEmail().equals(email)) {
-            throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
-        }
-    }
-
-    @Override
-    public void studygroupLeaderNickName(Long studygroupId, String nickName) {
-        Studygroup studygroup = findVerifyStudygroup(studygroupId);
-        if (studygroup.getLeaderMember().getNickName().equals(nickName)) {
-            throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
-        }
+        return findStudy.getLeader().getEmail().equals(email);
     }
 }

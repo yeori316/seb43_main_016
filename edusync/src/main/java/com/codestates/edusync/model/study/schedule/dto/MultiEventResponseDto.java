@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.study.plancalendar.dto;
+package com.codestates.edusync.model.study.schedule.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
