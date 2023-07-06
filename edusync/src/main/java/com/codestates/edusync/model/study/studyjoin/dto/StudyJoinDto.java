@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.study.studygroupjoin.dto;
+package com.codestates.edusync.model.study.studyjoin.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public class StudygroupJoinDto {
+public class StudyJoinDto {
     @NoArgsConstructor
     @Getter
     @Setter
@@ -15,6 +15,7 @@ public class StudygroupJoinDto {
         @NotNull
         private String nickName;
     }
+
     @NoArgsConstructor
     @Getter
     @Setter

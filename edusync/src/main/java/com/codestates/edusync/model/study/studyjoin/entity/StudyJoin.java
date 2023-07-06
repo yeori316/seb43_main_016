@@ -17,10 +17,8 @@ import static javax.persistence.CascadeType.MERGE;
 @Entity
 @Table
 public class StudyJoin extends AuditEntity {
-
     @Column
     private Boolean isApproved = false;
-
 
     @ManyToOne(cascade = {MERGE})
     @JoinColumn(name = "member_id")
@@ -29,5 +27,4 @@ public class StudyJoin extends AuditEntity {
     @ManyToOne(cascade = {MERGE})
     @JoinColumn(name = "study_id")
     private Study study;
-
 }
