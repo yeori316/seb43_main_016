@@ -1,36 +1,46 @@
 package com.codestates.edusync.model.study.comment.mapper;
 
-import com.codestates.edusync.model.study.comment.dto.CommentPostDto;
-import com.codestates.edusync.model.study.comment.dto.CommentResponseDto;
+import com.codestates.edusync.model.study.comment.dto.CommentDto;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
-    Comment studygroupPostCommentPostDtoToStudygroupPostComment(CommentPostDto.Post postDto);
-    Comment studygroupPostCommentPatchDtoToStudygroupPostComment(CommentPostDto.Patch patchDto);
+    default Comment commentPostToComment(CommentDto.Post commentPostDto) {
+        if ( commentPostDto == null ) return null;
 
-    default List<CommentResponseDto> studygroupPostCommentToStudygroupPostCommentResponseDtos(List<Comment> comments,
-                                                                                              String emailOfLoginMember) {
-        List<CommentResponseDto> result = new ArrayList<>();
-        comments.forEach(
-                comment -> {
-                    CommentResponseDto resultResponse =
-                            studygroupPostCommentToStudygroupPostCommentResponseDto(comment);
-                    resultResponse.setIsMyComment(comment.getMember().getEmail().equals(emailOfLoginMember));
-                    result.add(resultResponse);
-                }
-        );
+        Comment comment = new Comment();
+        comment.setContent(commentPostDto.getContent());
 
-        return result;
-    };
+        return comment;
+    }
 
-//    @Mapping(source = "id", target = "commentId")
-//    @Mapping(source = "study.id", target = "studyId")
-//    @Mapping(source = "member.nickName", target = "nickName")
-    CommentResponseDto studygroupPostCommentToStudygroupPostCommentResponseDto(Comment comment);
+    default Comment commentPatchToComment(CommentDto.Patch commentPatchDto) {
+        if ( commentPatchDto == null ) return null;
+
+        Comment comment = new Comment();
+        comment.setId(commentPatchDto.getId());
+        comment.setContent(commentPatchDto.getContent());
+
+        return comment;
+    }
+
+    default List<CommentDto.Response> commentsToResponesList(List<Comment> comments, String email) {
+        return comments.stream().map(e -> commentToResponse(e, email)).collect(Collectors.toList());
+    }
+
+    default CommentDto.Response commentToResponse(Comment comment, String email) {
+        CommentDto.Response response = new CommentDto.Response();
+
+        response.setId(comment.getId());
+        response.setNickName(comment.getMember().getNickName());
+        response.setContent(comment.getContent());
+        response.setIsMyComment(comment.getMember().getEmail().equals(email));
+
+        return response;
+    }
 }

@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 
-public class CommentPostDto {
+public class CommentDto {
 
     @AllArgsConstructor
     @NoArgsConstructor
@@ -22,7 +22,17 @@ public class CommentPostDto {
     @Getter
     public static class Patch {
         private Long id;
-
         private String content;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class Response {
+        private Long id;
+        private String nickName;
+        private String content;
+        private Boolean isMyComment;
     }
 }
