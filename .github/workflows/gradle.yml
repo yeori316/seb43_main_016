@@ -63,5 +63,5 @@ jobs:
         aws deploy create-deployment 
         --application-name $S3_BUCKET_NAME
         --deployment-config-name CodeDeployDefault.AllAtOnce
-        --deployment-group-name $S3_BUCKET_NAME-group
+        --deployment-group-name $S3_BUCKET_NAME
         --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$APP_NAME.zip
