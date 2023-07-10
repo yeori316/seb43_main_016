@@ -1,7 +1,6 @@
 package com.codestates.edusync.model.study.studyjoin.repository;
 
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -30,14 +29,14 @@ public interface StudyJoinRepository extends JpaRepository<StudyJoin, Long> {
      * @param studygroupId
      * @return
      */
-    List<StudyJoin> findAllByStudygroupIdAndIsApprovedIsFalse(Long studyId);
+    List<StudyJoin> findAllByStudyIdAndIsApprovedIsFalse(Long studyId);
 
     /**
      * 스터디 멤버 리스트
      * @param studygroupId
      * @return
      */
-    List<StudyJoin> findAllByStudygroupIdAndIsApprovedIsTrue(Long studyId);
+    List<StudyJoin> findAllByStudyIdAndIsApprovedIsTrue(Long studyId);
 
     /**
      * 스터디에 가입된 멤버 수

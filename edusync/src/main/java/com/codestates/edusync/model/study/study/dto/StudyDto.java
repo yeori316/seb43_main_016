@@ -5,12 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.joda.time.YearMonthDay;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.List;
 
 public class StudyDto {
@@ -36,25 +40,25 @@ public class StudyDto {
         private String introduction;
 
         @NotNull
-        private List<Integer> DayOfWeek;
+        private List<Integer> dayOfWeek;
 
         @NotNull
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
-        private LocalDateTime startDate;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+        private LocalDate startDate;
 
         @NotNull
-        @DateTimeFormat(pattern = "yyyy-MM-dd")
-        private LocalDateTime endDate;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+        private LocalDate endDate;
 
         @NotNull
-        @DateTimeFormat(pattern = "HH:mm")
-        private LocalDateTime startTime;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Seoul")
+        private LocalTime startTime;
 
         @NotNull
-        @DateTimeFormat(pattern = "HH:mm")
-        private LocalDateTime endTime;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Seoul")
+        private LocalTime endTime;
 
-        private String tags;
+        private List<String> tags;
     }
 
     @AllArgsConstructor
@@ -78,18 +82,18 @@ public class StudyDto {
         private List<Integer> DayOfWeek;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd")
-        private LocalDateTime startDate;
+        private LocalDate startDate;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd")
-        private LocalDateTime endDate;
+        private LocalDate endDate;
 
         @DateTimeFormat(pattern = "HH:mm")
-        private LocalDateTime startTime;
+        private LocalTime startTime;
 
         @DateTimeFormat(pattern = "HH:mm")
-        private LocalDateTime endTime;
+        private LocalTime endTime;
 
-        private String tags;
+        private List<String> tags;
     }
 
     @AllArgsConstructor
@@ -117,18 +121,18 @@ public class StudyDto {
         private Boolean isRecruited;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        private LocalDateTime startDate;
+        private LocalDate startDate;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        private LocalDateTime endDate;
+        private LocalDate endDate;
 
         private List<Integer> dayOfWeek;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Seoul")
-        private LocalDateTime startTime;
+        private LocalTime startTime;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Seoul")
-        private LocalDateTime endTime;
+        private LocalTime endTime;
 
         private List<String> tags;
         private String leaderNickName;
@@ -146,6 +150,6 @@ public class StudyDto {
         private Long id;
         private String image;
         private String title;
-        private List<String> tagValues;
+        private List<String> tags;
     }
 }

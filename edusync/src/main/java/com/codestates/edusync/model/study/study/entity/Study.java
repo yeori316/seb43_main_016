@@ -3,9 +3,10 @@ package com.codestates.edusync.model.study.study.entity;
 import com.codestates.edusync.model.common.entity.AuditEntity;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.study.comment.entity.Comment;
+import com.codestates.edusync.model.study.schedule.entity.DayOfWeek;
 import com.codestates.edusync.model.study.schedule.entity.Schedule;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
-import com.codestates.edusync.model.study.tagref.entity.TagRef;
+import com.codestates.edusync.model.study.tag.entity.TagRef;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,14 +42,17 @@ public class Study extends AuditEntity {
     private String introduction;
 
     @Column
-    private Boolean isRecruited = false;
+    private Boolean isRecruited;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private Member leader;
+    private Member member;
 
     @OneToMany(mappedBy = "study", cascade = {PERSIST, REFRESH, REMOVE})
     private List<StudyJoin> studyJoins;
+
+    @OneToOne(mappedBy = "study", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
+    private DayOfWeek dayOfWeek;
 
     @OneToOne(mappedBy = "study", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
     private Schedule schedule;

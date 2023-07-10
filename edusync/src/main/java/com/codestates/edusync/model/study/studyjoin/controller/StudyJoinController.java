@@ -1,7 +1,7 @@
 package com.codestates.edusync.model.study.studyjoin.controller;
 
 import com.codestates.edusync.model.common.dto.CommonDto;
-import com.codestates.edusync.model.member.entity.Member;
+import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.mapper.StudyJoinMapper;
@@ -24,6 +24,7 @@ import java.util.List;
 @RequestMapping("/study-join")
 @Validated
 public class StudyJoinController {
+    private final StudyMapper studyMapper;
     private final StudyJoinMapper mapper;
     private final StudyJoinService service;
 
@@ -51,7 +52,7 @@ public class StudyJoinController {
 
         return ResponseEntity.ok(
                 new CommonDto.ResponseList<>(
-                        mapper.studyListToResponseList(
+                        studyMapper.studyListToResponseList(
                                 service.getApplyList(authentication.getName())
                         )
                 )
@@ -68,7 +69,7 @@ public class StudyJoinController {
 
         return ResponseEntity.ok(
                 new CommonDto.ResponseList<>(
-                        mapper.studyListToResponseList(
+                        studyMapper.studyListToResponseList(
                                 service.getJoinList(authentication.getName())
                         )
                 )
@@ -85,7 +86,7 @@ public class StudyJoinController {
     public ResponseEntity getLeaderList(Authentication authentication) {
         return ResponseEntity.ok(
                 new CommonDto.ResponseList<>(
-                        mapper.studyListToResponseList(
+                        studyMapper.studyListToResponseList(
                                 service.getLeaderList(authentication.getName())
                         )
                 )
@@ -138,10 +139,10 @@ public class StudyJoinController {
         List<StudyJoin> studyJoinList =
                 service.getAllCandidateList(studyId, authentication.getName()); // 대기 리스트
 
-        StudyJoinDto.Response studygroupJoinDtos =
+        StudyJoinDto.Response studyJoinDtos =
                 mapper.studygroupJoinToStudygroupJoinDtos(studyJoinList);
 
-        return ResponseEntity.ok(studygroupJoinDtos);
+        return ResponseEntity.ok(studyJoinDtos);
     }
 
     /**
@@ -157,10 +158,10 @@ public class StudyJoinController {
         List<StudyJoin> studyJoinList;
         studyJoinList = service.getAllMemberList(studyId, authentication.getName()); // 멤버 리스트
 
-        StudyJoinDto.Response studygroupJoinDtos =
+        StudyJoinDto.Response studyJoinDtos =
                 mapper.studygroupJoinToStudygroupJoinDtos(studyJoinList);
 
-        return ResponseEntity.ok(studygroupJoinDtos);
+        return ResponseEntity.ok(studyJoinDtos);
     }
 
     /**

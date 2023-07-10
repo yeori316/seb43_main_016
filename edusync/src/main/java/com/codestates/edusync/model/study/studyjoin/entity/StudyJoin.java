@@ -9,8 +9,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
-import static javax.persistence.CascadeType.MERGE;
-
 @NoArgsConstructor
 @Getter
 @Setter
@@ -20,11 +18,11 @@ public class StudyJoin extends AuditEntity {
     @Column
     private Boolean isApproved = false;
 
-    @ManyToOne(cascade = {MERGE})
+    @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(cascade = {MERGE})
+    @ManyToOne
     @JoinColumn(name = "study_id")
     private Study study;
 }

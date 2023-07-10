@@ -2,13 +2,16 @@ package com.codestates.edusync.model.study.study.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.utils.AwsS3Service;
+import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.member.service.MemberManager;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.repository.StudyRepository;
 import com.codestates.edusync.model.study.study.utils.SortOrder;
-import com.codestates.edusync.model.study.studyjoin.service.StudyJoinService;
+import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
+import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
+import com.codestates.edusync.model.study.tag.entity.Tag;
+import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,10 +28,11 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class StudyService {
+public class StudyService implements StudyManager{
     private final StudyRepository repository;
-    private final MemberService memberService;
-    private final StudyJoinService studyJoinService;
+    private final StudyJoinRepository studyJoinRepository;
+    private final MemberManager memberManager;
+    private final TagService tagService;
     private final AwsS3Service awsS3Service;
 
     /**
@@ -37,6 +41,15 @@ public class StudyService {
      * @return Study
      */
     public Study create(Study study) {
+//        List<Tag> tagList = tagService.getList(tags);
+//
+//        study.setTagRefs(tagList.stream().map(e -> {
+//            TagRef tagRef = new TagRef();
+//            tagRef.setStudy(study);
+//            tagRef.setTag(e);
+//            return tagRef;
+//        }).collect(Collectors.toList()));
+
         return repository.save(study);
     }
 
@@ -51,7 +64,7 @@ public class StudyService {
         Study findStudy = repository.findById(study.getId())
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getLeader().getEmail().equals(email)) {
+        if (!findStudy.getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -78,7 +91,7 @@ public class StudyService {
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getLeader().getEmail().equals(email)) {
+        if (!findStudy.getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -98,7 +111,7 @@ public class StudyService {
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getLeader().getEmail().equals(email)) {
+        if (!findStudy.getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -117,14 +130,14 @@ public class StudyService {
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getLeader().getEmail().equals(email)) {
+        if (!findStudy.getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        findStudy.setLeader(
-                studyJoinService.find(
+        findStudy.setMember(
+                this.find(
                         studyId,
-                        memberService.getNickName(newLeaderNickName).getId()
+                        memberManager.getNickName(newLeaderNickName).getId()
                 ).getMember()
         );
 
@@ -132,10 +145,25 @@ public class StudyService {
     }
 
     /**
+     * 스터디 리더 수정 시
+     * @param studyId
+     * @param memberId
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public StudyJoin find(Long studyId, Long memberId) {
+        Optional<StudyJoin> optionalStudyJoin = studyJoinRepository.findByStudyIdAndMemberId(studyId, memberId);
+
+        return optionalStudyJoin.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.STUDYGROUP_PRIVILEGES_MEMBER_NOT_FOUND));
+    }
+
+    /**
      * 스터디 조회
      * @param studyId
      * @return
      */
+    @Override
     @Transactional(readOnly = true)
     public Study get(Long studyId) {
 
@@ -167,7 +195,7 @@ public class StudyService {
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getLeader().getEmail().equals(email)) {
+        if (!findStudy.getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -179,8 +207,9 @@ public class StudyService {
      * @param email
      * @return
      */
+    @Transactional(readOnly = true)
     public Member getMember(String email) {
-        return memberService.get(email);
+        return memberManager.get(email);
     }
 
     /**
@@ -188,8 +217,9 @@ public class StudyService {
      * @param studyId
      * @return
      */
+    @Transactional(readOnly = true)
     public int getStudyMemberCount(Long studyId) {
-        return studyJoinService.getStudyMemberCount(studyId);
+        return studyJoinRepository.countByStudyIdAndIsApprovedIsTrue(studyId);
     }
 
     /**
@@ -197,8 +227,18 @@ public class StudyService {
      * @param email
      * @return
      */
+    @Override
     @Transactional(readOnly = true)
     public List<Study> getLeaderStudyList(String email) {
-        return repository.findAllByLeaderMemberId(getMember(email).getId());
+        return repository.findAllByMemberId(getMember(email));
+    }
+
+    /**
+     * 태그 리스트 조회
+     * @param tagList
+     * @return
+     */
+    public List<Tag> getTagList(List<String> tagList) {
+        return tagService.getList(tagList);
     }
 }

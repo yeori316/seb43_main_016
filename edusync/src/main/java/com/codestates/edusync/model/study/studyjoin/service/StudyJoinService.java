@@ -2,12 +2,10 @@ package com.codestates.edusync.model.study.studyjoin.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.utils.VerifyStudygroupUtils;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
-import com.codestates.edusync.model.study.schedule.service.ScheduleStudyService;
+import com.codestates.edusync.model.member.service.MemberManager;
 import com.codestates.edusync.model.study.study.entity.Study;
-import com.codestates.edusync.model.study.study.service.StudyService;
+import com.codestates.edusync.model.study.study.service.StudyManager;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,9 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class StudyJoinService {
     private final StudyJoinRepository repository;
-    private final MemberService memberService;
-    private final StudyService studyService;
-    private final ScheduleStudyService scheduleStudyService;
+    private final MemberManager memberManager;
+    private final StudyManager studyManager;
 
 
     /**
@@ -42,7 +38,7 @@ public class StudyJoinService {
 
         // 이미 가입 신청 했는지 확인
         List<StudyJoin> sjs1 =
-                repository.findAllByStudygroupIdAndIsApprovedIsFalse(studyId);
+                repository.findAllByStudyIdAndIsApprovedIsFalse(studyId);
         for (StudyJoin sj : sjs1) {
             if (sj.getMember().getNickName().equals(member.getNickName())) studyJoin = sj;
         }
@@ -53,7 +49,7 @@ public class StudyJoinService {
 
         // 가입 되어 있는지 확인
         List<StudyJoin> sjs2 =
-                repository.findAllByStudygroupIdAndIsApprovedIsTrue(studyId);
+                repository.findAllByStudyIdAndIsApprovedIsTrue(studyId);
         for (StudyJoin sj : sjs2) {
             if (sj.getMember().getNickName().equals(member.getNickName())) studyJoin = sj;
         }
@@ -97,7 +93,7 @@ public class StudyJoinService {
      */
     @Transactional(readOnly = true)
     public List<Study> getLeaderList(String email) {
-        return studyService.getLeaderStudyList(email);
+        return studyManager.getLeaderStudyList(email);
     }
 
     /**
@@ -108,7 +104,7 @@ public class StudyJoinService {
     public void deleteApply(Long studyId, String email) {
 
         StudyJoin studyJoin = null;
-        List<StudyJoin> studyJoins = repository.findAllByStudygroupIdAndIsApprovedIsFalse(studyId);
+        List<StudyJoin> studyJoins = repository.findAllByStudyIdAndIsApprovedIsFalse(studyId);
 
         for (StudyJoin sj : studyJoins) {
             if (sj.getMember().getEmail().equals(email)) {
@@ -129,14 +125,14 @@ public class StudyJoinService {
      */
     public void deleteJoin(Long studyId, String email) {
 
-        if (getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
         StudyJoin studyJoin = null;
         List<StudyJoin> studyJoins;
 
-        studyJoins = repository.findAllByStudygroupIdAndIsApprovedIsTrue(studyId);
+        studyJoins = repository.findAllByStudyIdAndIsApprovedIsTrue(studyId);
 
         for (StudyJoin sj : studyJoins) {
             if (sj.getMember().getEmail().equals(email)) {
@@ -164,11 +160,11 @@ public class StudyJoinService {
     @Transactional(readOnly = true)
     public List<StudyJoin> getAllCandidateList(Long studyId, String email) {
 
-        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        return repository.findAllByStudygroupIdAndIsApprovedIsFalse(studyId);
+        return repository.findAllByStudyIdAndIsApprovedIsFalse(studyId);
     }
 
     /**
@@ -180,11 +176,11 @@ public class StudyJoinService {
     @Transactional(readOnly = true)
     public List<StudyJoin> getAllMemberList(Long studyId, String email) {
 
-        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        return repository.findAllByStudygroupIdAndIsApprovedIsTrue(studyId);
+        return repository.findAllByStudyIdAndIsApprovedIsTrue(studyId);
     }
 
     /**
@@ -195,14 +191,14 @@ public class StudyJoinService {
      */
     public void approveCandidateByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
         StudyJoin studyJoin = null;
 
         List<StudyJoin> sjs =
-                repository.findAllByStudygroupIdAndIsApprovedIsFalse(studyId);
+                repository.findAllByStudyIdAndIsApprovedIsFalse(studyId);
 
         for (StudyJoin sj : sjs) {
             if (sj.getMember().getNickName().equals(nickName)) studyJoin = sj;
@@ -211,7 +207,7 @@ public class StudyJoinService {
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
 
-        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
@@ -227,14 +223,14 @@ public class StudyJoinService {
      */
     public void rejectCandidateByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
         StudyJoin studyJoin = null;
 
         List<StudyJoin> sjs =
-                repository.findAllByStudygroupIdAndIsApprovedIsFalse(studyId);
+                repository.findAllByStudyIdAndIsApprovedIsFalse(studyId);
 
         for (StudyJoin sj : sjs) {
             if (sj.getMember().getNickName().equals(nickName)) studyJoin = sj;
@@ -242,7 +238,7 @@ public class StudyJoinService {
 
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
-        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
@@ -257,14 +253,14 @@ public class StudyJoinService {
      */
     public void kickOutMemberByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
+        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
         StudyJoin studyJoin = null;
 
         List<StudyJoin> sjs =
-                repository.findAllByStudygroupIdAndIsApprovedIsTrue(studyId);
+                repository.findAllByStudyIdAndIsApprovedIsTrue(studyId);
 
         for (StudyJoin sj : sjs) {
             if (sj.getMember().getNickName().equals(nickName)) studyJoin = sj;
@@ -273,14 +269,11 @@ public class StudyJoinService {
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND);
 
 
-        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
         repository.delete(studyJoin);
-
-
-        scheduleStudyService.deleteTimeScheduleByMember(studyId, nickName);
     }
 
 
@@ -293,29 +286,9 @@ public class StudyJoinService {
 
 
 
-    /**
-     * 스터디 멤버 수 조회
-     * @param studyId
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public int getStudyMemberCount(Long studyId) {
-        return repository.countByStudyIdAndIsApprovedIsTrue(studyId);
-    }
 
 
-    /**
-     * 스터디 리더 수정 시
-     * @param studyId
-     * @param memberId
-     * @return
-     */
-    public StudyJoin find(Long studyId, Long memberId) {
-        Optional<StudyJoin> optionalStudyJoin = repository.findByStudyIdAndMemberId(studyId, memberId);
 
-        return optionalStudyJoin.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.STUDYGROUP_PRIVILEGES_MEMBER_NOT_FOUND));
-    }
 
 
 
@@ -331,7 +304,7 @@ public class StudyJoinService {
      * @return
      */
     public Member getMember(String email) {
-        return memberService.get(email);
+        return memberManager.get(email);
     }
 
     /**
@@ -340,6 +313,6 @@ public class StudyJoinService {
      * @return
      */
     public Study getStudy(Long studyId) {
-        return studyService.get(studyId);
+        return studyManager.get(studyId);
     }
 }

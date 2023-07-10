@@ -1,12 +1,13 @@
 package com.codestates.edusync.model.study.study.mapper;
 
 import com.codestates.edusync.model.member.entity.Member;
+import com.codestates.edusync.model.study.schedule.entity.DayOfWeek;
 import com.codestates.edusync.model.study.schedule.entity.Schedule;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.tag.entity.Tag;
-import com.codestates.edusync.model.study.tagref.entity.TagRef;
+import com.codestates.edusync.model.study.tag.entity.TagRef;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudyMapper {
 
-    default Study studyPostToStudy(StudyDto.Post studyPostDto, Member member) {
+    default Study studyPostToStudy(StudyDto.Post studyPostDto, Member member, List<Tag> tagList) {
         if (studyPostDto == null) return null;
 
         Study study = new Study();
@@ -26,15 +27,17 @@ public interface StudyMapper {
         study.setMemberMax(studyPostDto.getMemberMax());
         study.setPlatform(studyPostDto.getPlatform());
         study.setIntroduction(studyPostDto.getIntroduction());
-        study.setLeader(member);
+        study.setIsRecruited(false);
+        study.setMember(member);
         study.setStudyJoins(joinMapping(member, study));
+        study.setDayOfWeek(dayOfWeekMapping(studyPostDto.getDayOfWeek(), study));
         study.setSchedule(scheduleMapping(studyPostDto, member, study));
-        study.setTagRefs(tagMapping(studyPostDto.getTags(), study));
+        study.setTagRefs(tagMappingTest(tagList, study));
 
         return study;
     }
 
-    default Study studyPatchToStudy(StudyDto.Patch studyPatchDto, Long studyId) {
+    default Study studyPatchToStudy(StudyDto.Patch studyPatchDto, Long studyId, List<Tag> tagList) {
         if (studyPatchDto == null) return null;
 
         Study study = new Study();
@@ -45,9 +48,8 @@ public interface StudyMapper {
         study.setMemberMax(studyPatchDto.getMemberMax());
         study.setPlatform(studyPatchDto.getPlatform());
         study.setIntroduction(studyPatchDto.getIntroduction());
-
         study.setSchedule(scheduleMapping(studyPatchDto, study));
-        study.setTagRefs(tagMapping(studyPatchDto.getTags(), study));
+        study.setTagRefs(tagMappingTest(tagList, study));
 
         return study;
     }
@@ -65,11 +67,10 @@ public interface StudyMapper {
         response.setIsRecruited(study.getIsRecruited());
         response.setStartDate(study.getSchedule().getStartDate());
         response.setEndDate(study.getSchedule().getEndDate());
-        response.setDayOfWeek(study.getSchedule().getDayOfWeek().stream().map(e -> e ? 1 : 0).collect(Collectors.toList()));
         response.setStartTime(study.getSchedule().getStartTime());
         response.setEndTime(study.getSchedule().getEndTime());
         response.setTags(study.getTagRefs().stream().map(e -> e.getTag().getValue()).collect(Collectors.toList()));
-        response.setLeaderNickName(study.getLeader().getNickName());
+        response.setLeaderNickName(study.getMember().getNickName());
         response.setIsLeader(isLeader);
 
         return response;
@@ -85,13 +86,28 @@ public interface StudyMapper {
         studySummary.setId(study.getId());
         studySummary.setImage(study.getImage());
         studySummary.setTitle(study.getStudyName());
-        studySummary.setTagValues(tagRefsToTagList(study.getTagRefs()));
+        studySummary.setTags(tagRefsToTagList(study.getTagRefs()));
 
         return studySummary;
     }
 
     default List<String> tagRefsToTagList(List<TagRef> tagRefs) {
         return tagRefs.stream().map(TagRef::getTag).map(Tag::getValue).collect(Collectors.toList());
+    }
+
+    default DayOfWeek dayOfWeekMapping(List<Integer> week, Study study) {
+        DayOfWeek dayOfWeek = new DayOfWeek();
+
+        dayOfWeek.setStudy(study);
+        dayOfWeek.setSunday(week.get(0) == 1);
+        dayOfWeek.setMonday(week.get(1) == 1);
+        dayOfWeek.setTuesday(week.get(2) == 1);
+        dayOfWeek.setWednesday(week.get(3) == 1);
+        dayOfWeek.setThursday(week.get(4) == 1);
+        dayOfWeek.setFriday(week.get(5) == 1);
+        dayOfWeek.setSaturday(week.get(6) == 1);
+
+        return dayOfWeek;
     }
 
     default List<StudyJoin> joinMapping(Member member, Study study) {
@@ -111,7 +127,6 @@ public interface StudyMapper {
         schedule.setDescription(studyPostDto.getIntroduction());
         schedule.setStartDate(studyPostDto.getStartDate());
         schedule.setEndDate(studyPostDto.getEndDate());
-        schedule.setDayOfWeek(studyPostDto.getDayOfWeek().stream().map(e -> e != 0).collect(Collectors.toList()));
         schedule.setStartTime(studyPostDto.getStartTime());
         schedule.setEndTime(studyPostDto.getEndTime());
         schedule.setMember(member);
@@ -127,7 +142,6 @@ public interface StudyMapper {
         schedule.setDescription(studyPatchDto.getIntroduction());
         schedule.setStartDate(studyPatchDto.getStartDate());
         schedule.setEndDate(studyPatchDto.getEndDate());
-        schedule.setDayOfWeek(studyPatchDto.getDayOfWeek().stream().map(e -> e != 0).collect(Collectors.toList()));
         schedule.setStartTime(studyPatchDto.getStartTime());
         schedule.setEndTime(studyPatchDto.getEndTime());
         schedule.setStudy(study);
@@ -135,16 +149,35 @@ public interface StudyMapper {
         return schedule;
     }
 
-    default List<TagRef> tagMapping(String tagValue, Study study) {
-        if (tagValue == null) return null;
 
+
+    default List<TagRef> tagMappingTest(List<Tag> tagList, Study study) {
+        return tagList.stream().map(e -> {
+            TagRef tagRef = new TagRef();
+            tagRef.setStudy(study);
+            tagRef.setTag(e);
+            return tagRef;
+        }).collect(Collectors.toList());
+    }
+
+
+
+    default List<TagRef> tagMapping(List<String> tagDto, Study study) {
+        if (tagDto == null) return null;
+
+        List<Tag> tagList = tagDto.stream().map(this::valueToTag).collect(Collectors.toList());
+
+        return tagList.stream().map(e -> {
+            TagRef tagRef = new TagRef();
+            tagRef.setTag(e);
+            tagRef.setStudy(study);
+            return tagRef;
+        }).collect(Collectors.toList());
+    }
+
+    default Tag valueToTag(String value) {
         Tag tag = new Tag();
-        tag.setValue(tagValue);
-
-        TagRef tagRef = new TagRef();
-        tagRef.setTag(tag);
-        tagRef.setStudy(study);
-
-        return List.of(tagRef);
+        tag.setValue(value);
+        return tag;
     }
 }

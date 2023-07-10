@@ -4,12 +4,13 @@ import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
-public interface StudyJoinMapper extends StudyMapper {
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface StudyJoinMapper {
 
     /**
      * 스터디 멤버 리스트 & 가입 대기 리스트 매퍼

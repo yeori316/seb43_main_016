@@ -6,6 +6,8 @@ import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.study.service.StudyService;
+import com.codestates.edusync.model.study.tag.entity.Tag;
+import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,7 +33,6 @@ import java.util.List;
 public class StudyController {
     private final StudyMapper mapper;
     private final StudyService service;
-    private final String defaultUrl = "/study";
 
     /**
      * 스터디 등록
@@ -43,8 +44,13 @@ public class StudyController {
     public ResponseEntity<URI> post(Authentication authentication,
                                     @Valid @RequestBody StudyDto.Post postDto) {
 
-        Study study = mapper.studyPostToStudy(postDto, service.getMember(authentication.getName()));
-        URI uri = UriCreator.createUri(defaultUrl, service.create(study).getId());
+        Study study = mapper.studyPostToStudy(
+                postDto,
+                service.getMember(authentication.getName()),
+                service.getTagList(postDto.getTags())
+        );
+
+        URI uri = UriCreator.createUri("/study", service.create(study).getId());
 
         return ResponseEntity.created(uri).build();
     }
@@ -61,8 +67,8 @@ public class StudyController {
                                         @Positive @PathVariable("study-id") Long studyId,
                                         @Valid @RequestBody StudyDto.Patch patchDto) {
 
-        service.update(
-                mapper.studyPatchToStudy(patchDto, studyId),
+        service.update( // TODO 스터디 수정 시 태그 수정 어떻게 할지....
+                mapper.studyPatchToStudy(patchDto, studyId, service.getTagList(patchDto.getTags())),
                 service.getMember(authentication.getName()).getEmail()
         );
 
@@ -151,7 +157,7 @@ public class StudyController {
                 mapper.studyToResponse(
                         study,
                         service.getStudyMemberCount(id),
-                        study.getLeader().getEmail().equals(email)
+                        study.getMember().getEmail().equals(email)
                 );
 
         return ResponseEntity.ok(response);

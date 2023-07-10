@@ -1,9 +1,9 @@
 package com.codestates.edusync.model.study.study.repository;
 
+import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.study.study.entity.Study;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,10 +16,10 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
      * @param memberId
      * @return
      */
-    List<Study> findAllByLeaderMemberId(Long memberId);
+    List<Study> findAllByMemberId(Member memberId);
 
     //@EntityGraph(attributePaths = {"searchTags", "leaderMember"})
-    Optional<Study> findById(Long studygroupId);
+    Optional<Study> findById(Long studyId);
 
     //@EntityGraph(attributePaths = "searchTags")
     Page<Study> findAll(Pageable pageable);
