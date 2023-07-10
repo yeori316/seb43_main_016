@@ -3,7 +3,7 @@
 
 
 # IntelliJ #
-resources
+edusync/src/main/resources
 .idea
 .gradle
 
