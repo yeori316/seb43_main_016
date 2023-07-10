@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.List;
 
 @NoArgsConstructor
@@ -27,23 +30,19 @@ public class Schedule extends BaseEntity {
 
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime endDate;
-
-    @ElementCollection
-    @Column(nullable = false)
-    private List<Boolean> dayOfWeek;
+    private LocalDate endDate;
 
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
-    private LocalDateTime startTime;
+    private LocalTime startTime;
 
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
-    private LocalDateTime endTime;
+    private LocalTime endTime;
 
     @Column
     private String color;
@@ -55,5 +54,4 @@ public class Schedule extends BaseEntity {
     @OneToOne
     @JoinColumn(name = "study_id")
     private Study study;
-
 }
