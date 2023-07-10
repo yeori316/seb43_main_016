@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '2.7.10'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 	id "org.asciidoctor.jvm.convert" version "3.3.2"    // .adoc 파일 확장자를 가지는 AsciiDoc 문서를 생성해주는 Asciidoctor를 사용하기 위한 플러그인 추가
-	id 'war'
+	//id 'war'
 }
 
 ext { // API 문서 스니핏이 생성될 경로를 지정
