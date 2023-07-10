@@ -46,10 +46,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             Authentication authResult) throws ServletException, IOException {
         Member member = (Member) authResult.getPrincipal();
 
-        if(!member.getStatus().equals(Member.Status.MEMBER_ACTIVE)){
-            member.setStatus(Member.Status.MEMBER_ACTIVE);
-        }
-
         String accessToken = tokenService.delegateAccessToken(member);
         String refreshToken = tokenService.delegateRefreshToken(member);
 

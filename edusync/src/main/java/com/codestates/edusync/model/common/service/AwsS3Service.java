@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.common.utils;
+package com.codestates.edusync.model.common.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
