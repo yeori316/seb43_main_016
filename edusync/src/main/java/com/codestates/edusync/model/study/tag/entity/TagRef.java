@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.study.tagref.entity;
+package com.codestates.edusync.model.study.tag.entity;
 
 import com.codestates.edusync.model.common.entity.BaseEntity;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -17,7 +17,7 @@ import javax.persistence.Table;
 @Setter
 @Entity
 @Table
-public class Tagref extends BaseEntity {
+public class TagRef extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "study_id")
     private Study study;
