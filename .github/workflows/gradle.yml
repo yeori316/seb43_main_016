@@ -40,18 +40,11 @@ jobs:
       uses: gradle/gradle-build-action@v2
     - run: gradle init
 
- 
-
-    - name: OutPut
-    - run: touch log.txt
-    - run: tail -f log.txt
-
-
     - name: Build with Gradle
-      uses: /gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
         gradle-version: 7.6.1
-        arguments: build > log.txt
+        arguments: build
         
     - name: Make zip file
       run: zip -r ./$APP_NAME.zip .
