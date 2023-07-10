@@ -5,6 +5,7 @@
 # IntelliJ #
 !.github/*
 !edusync/gradle/*
+build
 edusync/**/resources
 .idea
 .gradle

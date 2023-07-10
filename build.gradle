@@ -87,7 +87,7 @@ build {
 
 // 애플리케이션 실행 파일이 생성하는 :bootJar task 설정
 bootJar {
-	archiveFileName = 'app.jar' // 애플리케이션 이름 짧게 만들기
+	archiveFileName = 'edusync_refac.jar' // 애플리케이션 이름 짧게 만들기
 	dependsOn copyDocument    // :bootJar task 실행 전에 :copyDocument task가 실행 되도록 의존성을 설정
 	from ("${asciidoctor.outputDir}") {
 		into 'static/docs'     // Asciidoctor 실행으로 생성되는 index.html 파일을 jar 파일 안에 추가
