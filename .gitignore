@@ -1,0 +1,29 @@
+# Created by https://www.toptal.com/developers/gitignore/api/java
+# Edit at https://www.toptal.com/developers/gitignore?templates=java
+
+
+# IntelliJ #
+!.github/*
+!edusync/gradle/*
+edusync/**/resources
+.idea
+.gradle
+
+### Java ###
+# Compiled class file
+*.class
+*.yml
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.zip
+*.tar.gz
+
+# SQL #
+*.sql
+
+# End of https://www.toptal.com/developers/gitignore/api/java
