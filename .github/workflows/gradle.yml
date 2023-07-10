@@ -16,7 +16,6 @@ on:
 permissions:
   contents: read
   
-# S3 버킷 이름 변수
 env:
   S3_BUCKET_NAME: edusync-refactor
   APP_NAME: edusync_refac
@@ -41,33 +40,26 @@ jobs:
       uses: gradle/gradle-build-action@v2
     - run: gradle init
     
-    #- name: Add permission 
-    #  run: chmod +x gradlew 
-    
     - name: Build with Gradle
       uses: /gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
         gradle-version: 7.6.1
         arguments: build
         
-    # build한 후 프로젝트를 압축합니다.
     - name: Make zip file
       run: zip -r ./$APP_NAME.zip .
       shell: bash
-        
-    # Access Key와 Secret Access Key를 통해 권한을 확인
+       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}            # 등록된 Github Secret 참조
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # 등록한 Github Secret 참조
-        aws-region: ap-northeast-2                                  # 서울 리전 의미
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}            
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+        aws-region: ap-northeast-2                                  
 
-    # 압축한 프로젝트를 S3로 전송
     - name: Upload to S3
       run: aws s3 cp --region ap-northeast-2 ./$APP_NAME.zip s3://$S3_BUCKET_NAME/$APP_NAME.zip
       
-    # CodeDeploy에게 배포 명령
     - name: Code Deploy
       run: >
         aws deploy create-deployment 
