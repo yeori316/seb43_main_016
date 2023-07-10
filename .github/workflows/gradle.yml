@@ -60,7 +60,7 @@ jobs:
       
     - name: Code Deploy
       run: >
-        aws deploy create-deployment 
+        aws deploy create-deployment
         --application-name $S3_BUCKET_NAME
         --deployment-config-name CodeDeployDefault.AllAtOnce
         --deployment-group-name $S3_BUCKET_NAME
