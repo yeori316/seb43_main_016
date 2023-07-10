@@ -2,7 +2,7 @@ package com.codestates.edusync.model.member.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.utils.AwsS3Service;
+import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.repository.MemberRepository;
 import com.codestates.edusync.model.member.utils.NickNameCheckUtil;
@@ -24,12 +24,12 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class MemberService {
+public class MemberService implements MemberManager {
     private final MemberRepository repository;
-    private final CustomAuthorityUtils authorityUtils;
-    private final PasswordEncoder passwordEncoder;
     private final AwsS3Service awsS3Service;
+    private final CustomAuthorityUtils authorityUtils;
     private final NickNameCheckUtil nickNameCheckUtil;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 회원 가입
@@ -43,11 +43,11 @@ public class MemberService {
         if (optionalMember.isPresent()) {
             Member findMember = optionalMember.get();
 
-            if (findMember.getStatus().equals(Member.Status.MEMBER_ACTIVE)) {
+            if (findMember.getStatus().equals(Member.Status.ACTIVE)) {
                 throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL, String.format("%s는 이미 가입한 이메일입니다.", email));
-            } else if (findMember.getStatus().equals(Member.Status.MEMBER_SLEEP)) {
+            } else if (findMember.getStatus().equals(Member.Status.SLEEP)) {
                 throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL, String.format("%s는 현재 휴먼 계정입니다.", email));
-            } else if (findMember.getStatus().equals(Member.Status.MEMBER_QUIT)) {
+            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
                 throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", email));
             }
         }
@@ -67,6 +67,10 @@ public class MemberService {
 
         List<String> roles = authorityUtils.createRoles(member.getEmail());
         member.setRoles(roles);
+
+        System.out.println("*".repeat(50));
+        System.out.println(roles);
+        System.out.println(member.getRoles());
 
         return repository.save(member);
     }
@@ -134,18 +138,6 @@ public class MemberService {
     }
 
     /**
-     * WithMe 수정
-     * @param member Member
-     * @param email String
-     */
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateWithMe(Member member, String email) {
-        Member findMember = get(email);
-        Optional.ofNullable(member.getWithMe()).ifPresent(findMember::setWithMe);
-        repository.save(findMember);
-    }
-
-    /**
      * 이미지 수정
      * @param email String
      * @param image Image
@@ -161,6 +153,7 @@ public class MemberService {
      * @param email String
      * @return Member
      */
+    @Override
     @Transactional(readOnly = true)
     public Member get(String email) {
         Optional<Member> optionalMember = repository.findByEmail(email);
@@ -168,9 +161,9 @@ public class MemberService {
         Member findMember = optionalMember.orElseThrow(() ->
                 new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", email)));
 
-        if (findMember.getStatus().equals(Member.Status.MEMBER_SLEEP)) {
+        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
             throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", email));
-        } else if (findMember.getStatus().equals(Member.Status.MEMBER_QUIT)) {
+        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
             throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", email));
         }
 
@@ -182,6 +175,7 @@ public class MemberService {
      * @param nickName
      * @return
      */
+    @Override
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
         Optional<Member> optionalMember = repository.findByNickName(nickName);
@@ -189,9 +183,9 @@ public class MemberService {
         Member findMember = optionalMember.orElseThrow(() ->
                 new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", nickName)));
 
-        if (findMember.getStatus().equals(Member.Status.MEMBER_SLEEP)) {
+        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
             throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", nickName));
-        } else if (findMember.getStatus().equals(Member.Status.MEMBER_QUIT)) {
+        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
             throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", nickName));
         }
 
@@ -204,12 +198,12 @@ public class MemberService {
      */
     public void delete(String email) {
         Member findMember = get(email);
-        findMember.setStatus(Member.Status.MEMBER_QUIT);
+        findMember.setStatus(Member.Status.QUIT);
         repository.save(findMember);
     }
 
     /**
-     * 휴먼 회원 인증
+     * 휴먼 회원 해제
      * @param email String
      * @param password String
      */
@@ -223,9 +217,11 @@ public class MemberService {
         if (!passwordEncoder.matches(password, findMember.getPassword())) {
             throw new BusinessLogicException(ExceptionCode.MEMBER_PASSWORD_ERROR);
         } else {
-            if (findMember.getStatus().equals(Member.Status.MEMBER_SLEEP)) {
-                findMember.setStatus(Member.Status.MEMBER_ACTIVE);
+            if (findMember.getStatus().equals(Member.Status.SLEEP)) {
+                findMember.setStatus(Member.Status.ACTIVE);
                 repository.save(findMember);
+            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
+                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
             }
         }
     }

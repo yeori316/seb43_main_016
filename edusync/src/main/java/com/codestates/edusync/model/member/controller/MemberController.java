@@ -21,21 +21,21 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/members")
 @Validated
 public class MemberController {
     private final MemberMapper mapper;
     private final MemberService service;
-    private final URI loginUri = UriCreator.createUri("members", "login");
 
     /**
      * 회원 가입
      * @param postDto MemberPostDto
      * @return String
      */
-    @PostMapping
+    @PostMapping // TODO 패스워드 규칙 적용 필요
     public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
         service.create(mapper.memberPostToMember(postDto));
+        URI loginUri = UriCreator.createUri("members", "login");
         return ResponseEntity.created(loginUri).build();
     }
 
@@ -45,7 +45,7 @@ public class MemberController {
      * @param patchNickNameDto MemberPatchNickNameDto
      * @return String
      */
-    @PatchMapping("/nickName")
+    @PatchMapping("/name")
     public ResponseEntity<String> patchNickName(Authentication authentication,
                                                 @Valid @RequestBody MemberDto.PatchNickName patchNickNameDto) {
         service.updateNickName(mapper.memberPatchNickNameToMember(patchNickNameDto), authentication.getName());
@@ -79,19 +79,6 @@ public class MemberController {
     }
 
     /**
-     * WithMe 수정
-     * @param authentication 토큰
-     * @param patchWithMeDto memberPatchWithMeDto
-     * @return URI
-     */
-    @PatchMapping("/withme")
-    public ResponseEntity<String> patchWithMe(Authentication authentication,
-                                              @Valid @RequestBody MemberDto.PatchWithMe patchWithMeDto) {
-        service.updateWithMe(mapper.memberPatchWithMeToMember(patchWithMeDto), authentication.getName());
-        return ResponseEntity.ok().build();
-    }
-
-    /**
      * 이미지 수정
      * @param authentication 토큰
      * @param image 이미지
@@ -105,17 +92,31 @@ public class MemberController {
     }
 
     /**
-     * 회원 조회
+     * 본인 정보 조회
      * @param authentication 토큰
      * @return Response
      */
     @GetMapping
-    public ResponseEntity<MemberDto.Response> get(Authentication authentication) {
+    public ResponseEntity<MemberDto.MemberInfo> getMyInfo(Authentication authentication) {
 
-        MemberDto.Response responseDto =
-                mapper.memberToMemberResponse(service.get(authentication.getName()));
+        MemberDto.MemberInfo memberInfoDto =
+                mapper.memberToMemberInfoResponse(service.get(authentication.getName()));
 
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+        return new ResponseEntity<>(memberInfoDto, HttpStatus.OK);
+    }
+
+    /**
+     * 멤버 조회
+     * @param nickName
+     * @return
+     */
+    @GetMapping("/{nickName}") // TODO : 쿼리 스트링 난독화 필요
+    public ResponseEntity<MemberDto.MemberResponse> get(@PathVariable String nickName) {
+
+        MemberDto.MemberResponse memberResponseDto =
+                mapper.memberToMemberResponse(service.getNickName(nickName));
+
+        return new ResponseEntity<>(memberResponseDto, HttpStatus.OK);
     }
 
     /**
@@ -130,14 +131,14 @@ public class MemberController {
     }
 
     /**
-     * 휴먼 회원 인증
+     * 휴먼 회원 해제
      * @param loginDto loginDto
      * @return URI
      */
     @PatchMapping("/reactive")
     public ResponseEntity<URI> patchStatus(@RequestBody LoginDto loginDto){
         service.updateStatus(loginDto.getEmail(),loginDto.getPassword());
-        return new ResponseEntity<>(loginUri, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**

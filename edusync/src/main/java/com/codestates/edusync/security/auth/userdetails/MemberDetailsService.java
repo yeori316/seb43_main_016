@@ -31,7 +31,7 @@ public class MemberDetailsService implements UserDetailsService {
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         Member findMember = optionalMember.orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
 
-        if(!findMember.getStatus().equals(Member.Status.MEMBER_ACTIVE)){
+        if(!findMember.getStatus().equals(Member.Status.ACTIVE)){
             throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
         }
         return new MemberDetails(findMember);

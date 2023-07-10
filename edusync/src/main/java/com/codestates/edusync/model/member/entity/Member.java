@@ -39,21 +39,18 @@ public class Member extends AuditEntity {
     @Column(columnDefinition = "TEXT")
     private String aboutMe;
 
-    @Column(columnDefinition = "TEXT")
-    private String withMe;
-
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    @ElementCollection
-    @Column(nullable = false)
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles;
 
+    @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private Provider provider;
 
-    @OneToMany(mappedBy = "leader", cascade = {PERSIST, MERGE})
+    @OneToMany(mappedBy = "member", cascade = {PERSIST, MERGE})
     private List<Study> leaders;
 
     @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
@@ -66,9 +63,9 @@ public class Member extends AuditEntity {
     private List<Comment> comments;
 
     public enum Status {
-        MEMBER_ACTIVE("active"),
-        MEMBER_SLEEP("sleep"),
-        MEMBER_QUIT("quit");
+        ACTIVE("active"),
+        SLEEP("sleep"),
+        QUIT("quit");
 
         @Getter
         private final String status;

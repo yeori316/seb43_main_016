@@ -41,7 +41,7 @@ public class MemberDto {
     @Validated
     public static class PatchPassword {
         @NotBlank(message = "비밀번호는 공백이 아니어야 합니다.")
-        private String Password;
+        private String password;
     }
 
     @AllArgsConstructor
@@ -62,13 +62,21 @@ public class MemberDto {
     @NoArgsConstructor
     @Setter
     @Getter
-    public static class Response {
-        private String uuid;
+    public static class MemberInfo {
         private String email;
         private String nickName;
         private String image;
         private String aboutMe;
-        private String withMe;
         private List<String> roles;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Setter
+    @Getter
+    public static class MemberResponse {
+        private String nickName;
+        private String image;
+        private String aboutMe;
     }
 }

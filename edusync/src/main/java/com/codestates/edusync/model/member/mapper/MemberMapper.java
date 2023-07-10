@@ -4,11 +4,9 @@ import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.entity.Member;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberMapper {
 
@@ -27,7 +25,7 @@ public interface MemberMapper {
         member.setPassword(memberPostDto.getPassword());
         member.setNickName(memberPostDto.getNickName());
         member.setImage("https://www.gravatar.com/avatar/HASH");
-        member.setStatus(Member.Status.MEMBER_ACTIVE);
+        member.setStatus(Member.Status.ACTIVE);
         member.setProvider(Member.Provider.LOCAL);
 
         return member;
@@ -76,39 +74,35 @@ public interface MemberMapper {
     }
 
     /**
-     * WithMe 수정 시
-     * @param memberPatchWithMeDto memberPatchWithMeDto
-     * @return Member
-     */
-    default Member memberPatchWithMeToMember(MemberDto.PatchWithMe memberPatchWithMeDto) {
-        if (memberPatchWithMeDto == null) return null;
-
-        Member member = new Member();
-        member.setWithMe(memberPatchWithMeDto.getWithMe());
-
-        return member;
-    }
-
-    /**
-     * 회원 조회
+     * 본인 정보 조회
      * @param member member
      * @return memberResponseDto
      */
-    default MemberDto.Response memberToMemberResponse(Member member) {
+    default MemberDto.MemberInfo memberToMemberInfoResponse(Member member) {
         if (member == null) return null;
 
-        MemberDto.Response memberResponseDto = new MemberDto.Response();
+        MemberDto.MemberInfo memberInfoDto = new MemberDto.MemberInfo();
 
-        memberResponseDto.setUuid(member.getUuid());
-        memberResponseDto.setEmail(member.getEmail());
+        memberInfoDto.setEmail(member.getEmail());
+        memberInfoDto.setNickName(member.getNickName());
+        memberInfoDto.setImage(member.getImage());
+        memberInfoDto.setAboutMe(member.getAboutMe());
+
+        if (member.getRoles() != null) {
+            memberInfoDto.setRoles(member.getRoles());
+        }
+
+        return memberInfoDto;
+    }
+
+    default MemberDto.MemberResponse memberToMemberResponse(Member member) {
+        if (member == null) return null;
+
+        MemberDto.MemberResponse memberResponseDto = new MemberDto.MemberResponse();
+
         memberResponseDto.setNickName(member.getNickName());
         memberResponseDto.setImage(member.getImage());
         memberResponseDto.setAboutMe(member.getAboutMe());
-        memberResponseDto.setWithMe(member.getWithMe());
-
-        if (member.getRoles() != null) {
-            memberResponseDto.setRoles(member.getRoles());
-        }
 
         return memberResponseDto;
     }
