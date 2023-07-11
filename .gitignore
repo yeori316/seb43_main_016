@@ -28,4 +28,7 @@ edusync/**/resources
 # SQL #
 *.sql
 
+# cert #
+*.p12
+
 # End of https://www.toptal.com/developers/gitignore/api/java
