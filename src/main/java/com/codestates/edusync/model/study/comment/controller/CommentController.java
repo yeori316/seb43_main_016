@@ -65,7 +65,7 @@ public class CommentController {
                 mapper.commentPatchToComment(patchDto)
         );
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -105,6 +105,6 @@ public class CommentController {
                 studyId, commentId
         );
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.ok().build();
     }
 }
