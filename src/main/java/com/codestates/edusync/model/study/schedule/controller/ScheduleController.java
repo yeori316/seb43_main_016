@@ -40,12 +40,12 @@ public class ScheduleController {
 
     /**
      * 스케쥴 수정
-     * @param timeScheduleId
+     * @param scheduleId
      * @param patchDto
      * @param authentication
      * @return
      */
-    @PatchMapping("/schedule-id")
+    @PatchMapping("/{schedule-id}")
     public ResponseEntity patch(Authentication authentication,
                                 @PathVariable("schedule-id") @Positive Long scheduleId,
                                 @Valid @RequestBody ScheduleDto.Patch patchDto) {
@@ -59,7 +59,7 @@ public class ScheduleController {
 
     /**
      * 스케쥴 상세 정보 조회
-     * @param timeScheduleId
+     * @param scheduleId
      * @return
      */
     @GetMapping("/{schedule-id}")

@@ -79,7 +79,7 @@ public class StudyDto {
 
         private String introduction;
 
-        private List<Integer> DayOfWeek;
+        private List<Integer> dayOfWeek;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd")
         private LocalDate startDate;
