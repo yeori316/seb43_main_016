@@ -6,8 +6,6 @@ import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.study.service.StudyService;
-import com.codestates.edusync.model.study.tag.entity.Tag;
-import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -79,18 +77,18 @@ public class StudyController {
      * 스터디 이미지 수정
      * @param authentication
      * @param studyId
-     * @param file
+     * @param image
      * @return
      */
     @PatchMapping("/{study-id}/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
                                              @Positive @PathVariable("study-id") Long studyId,
-                                             @RequestPart(value="image") MultipartFile file) {
+                                             @RequestPart(value="image") MultipartFile image) {
 
         service.updateImage(
                 studyId,
                 service.getMember(authentication.getName()).getEmail(),
-                file
+                image
         );
 
         return ResponseEntity.ok().build();
@@ -115,27 +113,6 @@ public class StudyController {
     }
 
     /**
-     * 스터디 리더 수정
-     * @param authentication
-     * @param studyId
-     * @param patchLeader
-     * @return
-     */
-    @PatchMapping("/{study-id}/leader")
-    public ResponseEntity<String> patchLeader(Authentication authentication,
-                                              @PathVariable("study-id") @Positive Long studyId,
-                                              @RequestBody StudyDto.PatchLeader patchLeader) {
-
-        service.updateLeader(
-                studyId,
-                service.getMember(authentication.getName()).getEmail(),
-                patchLeader.getNickName()
-        );
-
-        return ResponseEntity.ok().build();
-    }
-
-    /**
      * 스터디 조회
      * @param authentication
      * @param studyId
@@ -143,20 +120,20 @@ public class StudyController {
      */
     @GetMapping("/{study-id}")
     public ResponseEntity<StudyDto.Response> get(Authentication authentication,
-                                                 @PathVariable("study-id") String studyId) throws UnsupportedEncodingException {
+                                                 @PathVariable("study-id") Long studyId) throws UnsupportedEncodingException {
 
-        String decode = URLDecoder.decode(studyId, "UTF-8");
-        Base64.Decoder decoder = Base64.getDecoder();
-        byte[] decodedBytes = decoder.decode(decode.getBytes());
-        long id = Long.valueOf(new String(decodedBytes));
+//        String decode = URLDecoder.decode(studyId, "UTF-8");
+//        Base64.Decoder decoder = Base64.getDecoder();
+//        byte[] decodedBytes = decoder.decode(decode.getBytes());
+//        long id = Long.valueOf(new String(decodedBytes));
 
         String email = service.getMember(authentication.getName()).getEmail();
-        Study study = service.get(id);
+        Study study = service.get(studyId);
 
         StudyDto.Response response =
                 mapper.studyToResponse(
                         study,
-                        service.getStudyMemberCount(id),
+                        service.getStudyMemberCount(studyId),
                         study.getMember().getEmail().equals(email)
                 );
 
