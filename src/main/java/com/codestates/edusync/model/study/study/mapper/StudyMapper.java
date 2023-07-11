@@ -23,6 +23,7 @@ public interface StudyMapper {
         Study study = new Study();
 
         study.setStudyName(studyPostDto.getStudyName());
+        study.setImage("https://ibb.co/mtFLvN4");
         study.setMemberMin(studyPostDto.getMemberMin());
         study.setMemberMax(studyPostDto.getMemberMax());
         study.setPlatform(studyPostDto.getPlatform());
