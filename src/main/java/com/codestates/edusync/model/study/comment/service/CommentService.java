@@ -47,7 +47,7 @@ public class CommentService {
      * @param email
      * @param studyId
      * @param commentId
-     * @param patchComment
+     * @param comment
      * @return
      */
     public Comment update(String email, Long studyId, Long commentId, Comment comment) {
@@ -73,7 +73,7 @@ public class CommentService {
 
     /**
      * 댓글 리스트 조회
-     * @param studygroupId
+     * @param studyId
      * @return
      */
     @Transactional(readOnly = true)
@@ -86,7 +86,7 @@ public class CommentService {
      * 댓글 삭제
      * @param studyId
      * @param commentId
-     * @param loginMember
+     * @param email
      */
     public void delete(String email, Long studyId, Long commentId) {
 

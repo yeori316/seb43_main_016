@@ -18,11 +18,11 @@ public class Comment extends AuditEntity {
     @Column(nullable = false)
     private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "study_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "studyId")
     private Study study;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "memberId")
     private Member member;
 }

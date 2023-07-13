@@ -16,6 +16,4 @@ public class ErrorResponder {
         response.setStatus(status.value()); // status 작성
         response.getWriter().write(gson.toJson(errorResponse, ErrorResponse.class));
     }
-
-
 }

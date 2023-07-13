@@ -73,7 +73,7 @@ public class StudyService implements StudyManager{
         Optional.ofNullable(study.getMemberMax()).ifPresent(findStudy::setMemberMax);
         Optional.ofNullable(study.getPlatform()).ifPresent(findStudy::setPlatform);
         Optional.ofNullable(study.getIntroduction()).ifPresent(findStudy::setIntroduction);
-        Optional.ofNullable(study.getSchedule()).ifPresent(findStudy::setSchedule);
+        Optional.ofNullable(study.getStudySchedule()).ifPresent(findStudy::setStudySchedule);
         Optional.ofNullable(study.getTagRefs()).ifPresent(findStudy::setTagRefs);
 
         repository.save(findStudy);

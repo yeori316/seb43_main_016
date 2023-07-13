@@ -1,8 +1,9 @@
 package com.codestates.edusync.model.member.entity;
 
 import com.codestates.edusync.model.common.entity.AuditEntity;
+import com.codestates.edusync.model.schedule.memberSchedule.entity.MemberSchedule;
+import com.codestates.edusync.model.schedule.studySchedule.entity.ScheduleRef;
 import com.codestates.edusync.model.study.comment.entity.Comment;
-import com.codestates.edusync.model.study.schedule.entity.Schedule;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.List;
 
-import static javax.persistence.CascadeType.*;
+import static javax.persistence.CascadeType.REMOVE;
 
 @NoArgsConstructor
 @Getter
@@ -43,24 +44,30 @@ public class Member extends AuditEntity {
     @Column(nullable = false)
     private Status status;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> roles;
-
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
     private Provider provider;
 
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, MERGE})
+
+    @OneToMany(mappedBy = "member", cascade = REMOVE)
+    private List<MemberSchedule> memberSchedules;
+
+    @OneToMany(mappedBy = "member", cascade = REMOVE)
     private List<Study> leaders;
 
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
+    @OneToMany(mappedBy = "member", cascade = REMOVE)
     private List<StudyJoin> studyJoins;
 
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
-    private List<Schedule> schedules;
+    @OneToMany(mappedBy = "member", cascade = REMOVE)
+    private List<ScheduleRef> scheduleRefs;
 
-    @OneToMany(mappedBy = "member", cascade = {PERSIST, REMOVE})
+    @OneToMany(mappedBy = "member", cascade = REMOVE)
     private List<Comment> comments;
+
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> roles;
+
 
     public enum Status {
         ACTIVE("active"),

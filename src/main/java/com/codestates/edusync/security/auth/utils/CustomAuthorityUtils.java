@@ -31,10 +31,9 @@ public class CustomAuthorityUtils { // 사용자 권한 부여, 확인을 위한
 
     // DB에 저장된 Role을 기반으로 권한 정보 생성
     public List<GrantedAuthority> createAuthorities(List<String> roles) {
-        List<GrantedAuthority> authorities = roles.stream()
+        return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toList());
-        return authorities;
     }
 
     // DB 저장 용

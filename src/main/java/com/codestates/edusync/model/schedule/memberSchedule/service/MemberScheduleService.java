@@ -1,11 +1,12 @@
-package com.codestates.edusync.model.study.schedule.service;
+package com.codestates.edusync.model.schedule.memberSchedule.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberManager;
-import com.codestates.edusync.model.study.schedule.entity.Schedule;
-import com.codestates.edusync.model.study.schedule.repository.ScheduleRepository;
+import com.codestates.edusync.model.schedule.common.entity.Schedule;
+import com.codestates.edusync.model.schedule.memberSchedule.entity.MemberSchedule;
+import com.codestates.edusync.model.schedule.memberSchedule.repository.MemberScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,16 +17,16 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class ScheduleService {
-    private final ScheduleRepository repository;
+public class MemberScheduleService {
+    private final MemberScheduleRepository repository;
     private final MemberManager memberManager;
 
     /**
      * 스케쥴 등록
      * @param schedule
      */
-    public void create(Schedule schedule, String email) {
-        schedule.setMember(getMember(email));
+    public void create(MemberSchedule schedule, String email) {
+        //schedule.setMember(getMember(email));
         repository.save(schedule);
     }
 
@@ -35,9 +36,9 @@ public class ScheduleService {
      * @param schedule
      * @param email
      */
-    public void update(Long scheduleId, String email, Schedule schedule) {
+    public void update(Long scheduleId, String email, MemberSchedule schedule) {
 
-        Schedule findSchedule =
+        MemberSchedule findSchedule =
                 repository.findById(scheduleId)
                         .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND));
 
@@ -63,9 +64,9 @@ public class ScheduleService {
      * @return
      */
     @Transactional(readOnly = true)
-    public Schedule get(Long scheduleId, String email) {
+    public MemberSchedule get(Long scheduleId, String email) {
 
-        Schedule findSchedule =
+        MemberSchedule findSchedule =
                 repository.findById(scheduleId)
                         .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND));
 
@@ -82,7 +83,7 @@ public class ScheduleService {
      * @return
      */
     @Transactional(readOnly = true)
-    public List<Schedule> getList(String email) {
+    public List<MemberSchedule> getList(String email) {
         return repository.findAllByMemberId(getMember(email).getId());
     }
 
@@ -95,7 +96,7 @@ public class ScheduleService {
     @Transactional(readOnly = true)
     public void delete(Long scheduleId, String email) {
 
-        Schedule findSchedule = get(scheduleId, email);
+        MemberSchedule findSchedule = get(scheduleId, email);
 
         repository.delete(findSchedule);
     }

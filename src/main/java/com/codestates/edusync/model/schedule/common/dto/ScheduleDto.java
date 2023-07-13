@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.study.schedule.dto;
+package com.codestates.edusync.model.schedule.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

@@ -21,14 +21,14 @@ public class TagService {
         Tag findTag = get(value);
         if (findTag == null) {
             Tag tag = new Tag();
-            tag.setValue(value);
+            tag.setTagValue(value);
             return repository.save(tag);
         }
         return findTag;
     }
 
     public Tag get(String value) {
-        return repository.findByValue(value);
+        return repository.findByTagValue(value);
     }
 
     public List<Tag> getList(List<String> tags) {

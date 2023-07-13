@@ -1,8 +1,8 @@
-package com.codestates.edusync.model.study.schedule.controller;
+package com.codestates.edusync.model.schedule.memberSchedule.controller;
 
-import com.codestates.edusync.model.study.schedule.dto.ScheduleDto;
-import com.codestates.edusync.model.study.schedule.mapper.ScheduleMapper;
-import com.codestates.edusync.model.study.schedule.service.ScheduleService;
+import com.codestates.edusync.model.schedule.common.mapper.ScheduleMapper;
+import com.codestates.edusync.model.schedule.memberSchedule.service.MemberScheduleService;
+import com.codestates.edusync.model.schedule.common.dto.ScheduleDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,9 +19,9 @@ import javax.validation.constraints.Positive;
 @RestController
 @RequestMapping("/schedule")
 @Validated
-public class ScheduleController {
+public class MemberScheduleController {
     private final ScheduleMapper mapper;
-    private final ScheduleService service;
+    private final MemberScheduleService service;
 
     /**
      * 스케쥴 추가

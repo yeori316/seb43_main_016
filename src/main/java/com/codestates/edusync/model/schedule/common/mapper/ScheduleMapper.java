@@ -1,7 +1,8 @@
-package com.codestates.edusync.model.study.schedule.mapper;
+package com.codestates.edusync.model.schedule.common.mapper;
 
-import com.codestates.edusync.model.study.schedule.dto.ScheduleDto;
-import com.codestates.edusync.model.study.schedule.entity.Schedule;
+import com.codestates.edusync.model.schedule.common.dto.ScheduleDto;
+import com.codestates.edusync.model.schedule.common.entity.Schedule;
+import com.codestates.edusync.model.schedule.memberSchedule.entity.MemberSchedule;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
@@ -11,8 +12,8 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ScheduleMapper {
 
-    default Schedule schedulePostToSchedule(ScheduleDto.Post schedulePostDto) {
-        Schedule schedule = new Schedule();
+    default MemberSchedule schedulePostToSchedule(ScheduleDto.Post schedulePostDto) {
+        MemberSchedule schedule = new MemberSchedule();
 
         schedule.setTitle(schedulePostDto.getTitle());
         schedule.setDescription(schedulePostDto.getDescription());
@@ -25,8 +26,8 @@ public interface ScheduleMapper {
         return schedule;
     }
 
-    default Schedule schedulePatchToSchedule(ScheduleDto.Patch schedulePatchDto) {
-        Schedule schedule = new Schedule();
+    default MemberSchedule schedulePatchToSchedule(ScheduleDto.Patch schedulePatchDto) {
+        MemberSchedule schedule = new MemberSchedule();
 
         schedule.setTitle(schedulePatchDto.getTitle());
         schedule.setDescription(schedulePatchDto.getDescription());
@@ -39,21 +40,21 @@ public interface ScheduleMapper {
         return schedule;
     }
 
-    default ScheduleDto.Response scheduleToResponse(Schedule schedule) {
+    default ScheduleDto.Response scheduleToResponse(MemberSchedule schedule) {
         ScheduleDto.Response response = new ScheduleDto.Response();
 
-        response.setTitle(schedule.getTitle());
-        response.setDescription(schedule.getDescription());
-        response.setStartDate(schedule.getStartDate());
-        response.setEndDate(schedule.getEndDate());
-        response.setStartTime(schedule.getStartTime());
-        response.setEndTime(schedule.getEndTime());
-        response.setColor(schedule.getColor());
+//        response.setTitle(schedule.getTitle());
+//        response.setDescription(schedule.getDescription());
+//        response.setStartDate(schedule.getStartDate());
+//        response.setEndDate(schedule.getEndDate());
+//        response.setStartTime(schedule.getStartTime());
+//        response.setEndTime(schedule.getEndTime());
+//        response.setColor(schedule.getColor());
 
         return response;
     }
 
-    default List<ScheduleDto.Response> schedulesToResponseList(List<Schedule> schedules) {
+    default List<ScheduleDto.Response> schedulesToResponseList(List<MemberSchedule> schedules) {
         return schedules.stream().map(this::scheduleToResponse).collect(Collectors.toList());
     }
 }
