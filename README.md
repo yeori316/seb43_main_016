@@ -1,12 +1,14 @@
 <h1>EduSync Refactoring</h1>
 스터디 모집 & 관리 플랫폼
 <br><br>
-기존 <a href="https://www.edusync.site">프론트 배포</a> / <a href="https://wish17.store">백엔드 배포</a>
+기존 <br>
+<a href="https://www.edusync.site">프론트 배포</a> / <a href="https://wish17.store">백엔드 배포</a>
 
 <br>
 
-리팩토링 <a href="http://dt8ncql3gs8bu.cloudfront.net">프론트 배포</a> / 
-<a href="http://ec2-15-165-204-189.ap-northeast-2.compute.amazonaws.com:8080">백엔드 배포</a>
+리팩토링 <br>
+<a href="http://edusync-refector.s3-website-us-east-1.amazonaws.com">프론트 배포</a> / 
+<a href="https://ec2-3-36-48-195.ap-northeast-2.compute.amazonaws.com">백엔드 배포</a>
 
 <br>
 
