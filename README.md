@@ -3,8 +3,7 @@
 <br><br>
 기존 <br>
 <a href="https://www.edusync.site">프론트 배포</a> / <a href="https://wish17.store">백엔드 배포</a>
-
-<br><br>
+<br>
 
 리팩토링 <br>
 <a href="http://edusync-refector.s3-website-us-east-1.amazonaws.com">프론트 배포</a> / 
@@ -18,7 +17,6 @@
 4. URL 쿼리 스트링 난독화
 5. 테스트 코드 작성
 6. 성능 부하 테스트
-
 <br>
 
 ## Refactoring 멤버
@@ -40,7 +38,6 @@
         </tr>
     </tbody>
 </table>
-
 <br>
 
 ***
