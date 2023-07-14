@@ -17,7 +17,7 @@ import static javax.persistence.CascadeType.REMOVE;
 @Entity
 @Table
 public class Tag extends BaseEntity {
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String tagValue;
 
     @OneToMany(mappedBy = "tag" , cascade = {REMOVE})

@@ -37,6 +37,7 @@ public class MemberController {
     @PostMapping // TODO 패스워드 규칙 적용 필요
     public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
         service.create(mapper.memberPostToMember(postDto));
+        // TODO URI 필요한가?
         URI loginUri = UriCreator.createUri("members", "login");
         return ResponseEntity.created(loginUri).build();
     }

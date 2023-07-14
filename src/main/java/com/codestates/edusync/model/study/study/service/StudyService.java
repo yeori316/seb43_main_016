@@ -11,6 +11,7 @@ import com.codestates.edusync.model.study.study.utils.SortOrder;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
 import com.codestates.edusync.model.study.tag.entity.Tag;
+import com.codestates.edusync.model.study.tag.service.TagRefService;
 import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,8 @@ public class StudyService implements StudyManager{
     private final StudyRepository repository;
     private final StudyJoinRepository studyJoinRepository;
     private final MemberManager memberManager;
-    private final TagService tagService;
     private final AwsS3Service awsS3Service;
+    private final TagRefService tagRefService;
 
     /**
      * 스터디 등록
@@ -41,15 +42,6 @@ public class StudyService implements StudyManager{
      * @return Study
      */
     public Study create(Study study) {
-//        List<Tag> tagList = tagService.getList(tags);
-//
-//        study.setTagRefs(tagList.stream().map(e -> {
-//            TagRef tagRef = new TagRef();
-//            tagRef.setStudy(study);
-//            tagRef.setTag(e);
-//            return tagRef;
-//        }).collect(Collectors.toList()));
-
         return repository.save(study);
     }
 
@@ -64,7 +56,7 @@ public class StudyService implements StudyManager{
         Study findStudy = repository.findById(study.getId())
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getMember().getEmail().equals(email)) {
+        if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -73,8 +65,16 @@ public class StudyService implements StudyManager{
         Optional.ofNullable(study.getMemberMax()).ifPresent(findStudy::setMemberMax);
         Optional.ofNullable(study.getPlatform()).ifPresent(findStudy::setPlatform);
         Optional.ofNullable(study.getIntroduction()).ifPresent(findStudy::setIntroduction);
-        Optional.ofNullable(study.getStudySchedule()).ifPresent(findStudy::setStudySchedule);
-        Optional.ofNullable(study.getTagRefs()).ifPresent(findStudy::setTagRefs);
+        Optional.ofNullable(study.getStudySchedule()).ifPresent(e -> {
+            findStudy.setStudySchedule(e);
+            if (e.getStudyDayOfWeek() != null) {
+                findStudy.getStudySchedule().setStudyDayOfWeek(e.getStudyDayOfWeek());
+            }
+        });
+        Optional.ofNullable(study.getTagRefs()).ifPresent(e -> {
+            tagRefService.delete(findStudy);
+            findStudy.setTagRefs(e);
+        });
 
         repository.save(findStudy);
     }
@@ -91,7 +91,7 @@ public class StudyService implements StudyManager{
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getMember().getEmail().equals(email)) {
+        if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -111,7 +111,7 @@ public class StudyService implements StudyManager{
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getMember().getEmail().equals(email)) {
+        if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -130,11 +130,11 @@ public class StudyService implements StudyManager{
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getMember().getEmail().equals(email)) {
+        if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        findStudy.setMember(
+        findStudy.setLeader(
                 this.find(
                         studyId,
                         memberManager.getNickName(newLeaderNickName).getId()
@@ -195,7 +195,7 @@ public class StudyService implements StudyManager{
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
-        if (!findStudy.getMember().getEmail().equals(email)) {
+        if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -230,15 +230,6 @@ public class StudyService implements StudyManager{
     @Override
     @Transactional(readOnly = true)
     public List<Study> getLeaderStudyList(String email) {
-        return repository.findAllByMemberId(getMember(email));
-    }
-
-    /**
-     * 태그 리스트 조회
-     * @param tagList
-     * @return
-     */
-    public List<Tag> getTagList(List<String> tagList) {
-        return tagService.getList(tagList);
+        return repository.findAllByleaderId(getMember(email));
     }
 }

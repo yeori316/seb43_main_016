@@ -46,7 +46,7 @@ public class Study extends AuditEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")
-    private Member member;
+    private Member leader;
 
     @OneToOne(cascade = {PERSIST, REMOVE}, fetch = FetchType.LAZY)
     @JoinColumn(name = "studyScheduleId")
@@ -59,6 +59,6 @@ public class Study extends AuditEntity {
     @OneToMany(mappedBy = "study", cascade = REMOVE)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "study", cascade = {PERSIST, REMOVE})
+    @OneToMany(mappedBy = "study", cascade = ALL)
     private List<TagRef> tagRefs;
 }

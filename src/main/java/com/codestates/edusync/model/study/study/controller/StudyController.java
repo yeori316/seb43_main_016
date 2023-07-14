@@ -2,15 +2,18 @@ package com.codestates.edusync.model.study.study.controller;
 
 import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.common.utils.UriCreator;
+import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.study.service.StudyService;
+import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.List;
 
+@Transactional
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -29,6 +33,8 @@ import java.util.List;
 public class StudyController {
     private final StudyMapper mapper;
     private final StudyService service;
+    private final MemberService memberService;
+    private final TagService tagService;
 
     /**
      * 스터디 등록
@@ -42,8 +48,8 @@ public class StudyController {
 
         Study study = mapper.studyPostToStudy(
                 postDto,
-                service.getMember(authentication.getName()),
-                service.getTagList(postDto.getTags())
+                memberService.get(authentication.getName()),
+                tagService.getList(postDto.getTags())
         );
 
         URI uri = UriCreator.createUri("/study", service.create(study).getId());
@@ -64,8 +70,8 @@ public class StudyController {
                                         @Valid @RequestBody StudyDto.Patch patchDto) {
 
         service.update( // TODO 스터디 수정 시 태그 수정 어떻게 할지....
-                mapper.studyPatchToStudy(patchDto, studyId, service.getTagList(patchDto.getTags())),
-                service.getMember(authentication.getName()).getEmail()
+                mapper.studyPatchToStudy(patchDto, studyId, tagService.getList(patchDto.getTags())),
+                memberService.get(authentication.getName()).getEmail()
         );
 
         return ResponseEntity.ok().build();
@@ -85,7 +91,7 @@ public class StudyController {
 
         service.updateImage(
                 studyId,
-                service.getMember(authentication.getName()).getEmail(),
+                memberService.get(authentication.getName()).getEmail(),
                 image
         );
 
@@ -104,7 +110,7 @@ public class StudyController {
 
         service.updateStatus(
                 studyId,
-                service.getMember(authentication.getName()).getEmail()
+                memberService.get(authentication.getName()).getEmail()
         );
 
         return ResponseEntity.ok().build();
@@ -125,14 +131,14 @@ public class StudyController {
 //        byte[] decodedBytes = decoder.decode(decode.getBytes());
 //        long id = Long.valueOf(new String(decodedBytes));
 
-        String email = service.getMember(authentication.getName()).getEmail();
+        String email = memberService.get(authentication.getName()).getEmail();
         Study study = service.get(studyId);
 
         StudyDto.Response response =
                 mapper.studyToResponse(
                         study,
                         service.getStudyMemberCount(studyId),
-                        study.getMember().getEmail().equals(email)
+                        study.getLeader().getEmail().equals(email)
                 );
 
         return ResponseEntity.ok(response);
@@ -170,7 +176,7 @@ public class StudyController {
 
         service.delete(
                 studyId,
-                service.getMember(authentication.getName()).getEmail()
+                memberService.get(authentication.getName()).getEmail()
         );
 
         return ResponseEntity.ok().build();

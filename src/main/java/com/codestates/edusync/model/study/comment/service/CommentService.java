@@ -60,7 +60,7 @@ public class CommentService {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
         }
 
-        if( !findComment.getStudy().getMember().getId().equals(getMember(email).getId()) &&
+        if( !findComment.getStudy().getLeader().getId().equals(getMember(email).getId()) &&
                 !findComment.getMember().getId().equals(getMember(email).getId()) ) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
         }
@@ -98,7 +98,7 @@ public class CommentService {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
         }
 
-        if( !findComment.getStudy().getMember().getId().equals(getMember(email).getId()) &&
+        if( !findComment.getStudy().getLeader().getId().equals(getMember(email).getId()) &&
                 !findComment.getMember().getId().equals(getMember(email).getId()) ) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
         }

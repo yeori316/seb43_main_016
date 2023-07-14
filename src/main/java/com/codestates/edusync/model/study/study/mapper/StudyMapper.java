@@ -1,8 +1,8 @@
 package com.codestates.edusync.model.study.study.mapper;
 
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.schedule.common.entity.DayOfWeek;
-import com.codestates.edusync.model.schedule.common.entity.Schedule;
+import com.codestates.edusync.model.schedule.studySchedule.entity.ScheduleRef;
+import com.codestates.edusync.model.schedule.studySchedule.entity.StudyDayOfWeek;
 import com.codestates.edusync.model.schedule.studySchedule.entity.StudySchedule;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -12,12 +12,20 @@ import com.codestates.edusync.model.study.tag.entity.TagRef;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StudyMapper {
 
+    /**
+     * 스터디 등록
+     * @param studyPostDto
+     * @param member
+     * @param tagList
+     * @return
+     */
     default Study studyPostToStudy(StudyDto.Post studyPostDto, Member member, List<Tag> tagList) {
         if (studyPostDto == null) return null;
 
@@ -30,14 +38,21 @@ public interface StudyMapper {
         study.setPlatform(studyPostDto.getPlatform());
         study.setIntroduction(studyPostDto.getIntroduction());
         study.setIsRecruited(false);
-        study.setMember(member);
+        study.setLeader(member);
         study.setStudyJoins(this.joinMapping(member, study));
-        study.setStudySchedule(this.scheduleMapping(studyPostDto, member, study));
-        study.setTagRefs(this.tagMappingTest(tagList, study));
+        study.setStudySchedule(this.studyScheduleMapping(studyPostDto, member));
+        study.setTagRefs(this.tagMapping(study, tagList));
 
         return study;
     }
 
+    /**
+     * 스터디 수정
+     * @param studyPatchDto
+     * @param studyId
+     * @param tagList
+     * @return
+     */
     default Study studyPatchToStudy(StudyDto.Patch studyPatchDto, Long studyId, List<Tag> tagList) {
         if (studyPatchDto == null) return null;
 
@@ -49,12 +64,19 @@ public interface StudyMapper {
         study.setMemberMax(studyPatchDto.getMemberMax());
         study.setPlatform(studyPatchDto.getPlatform());
         study.setIntroduction(studyPatchDto.getIntroduction());
-        study.setStudySchedule(this.scheduleMapping(studyPatchDto, study));
-        study.setTagRefs(this.tagMappingTest(tagList, study));
+        study.setStudySchedule(this.studySchedulePatchMapping(studyPatchDto));
+        study.setTagRefs(this.tagMapping(study, tagList));
 
         return study;
     }
 
+    /**
+     * 스터디 조회 시
+     * @param study
+     * @param studyMemberCnt
+     * @param isLeader
+     * @return
+     */
     default StudyDto.Response studyToResponse(Study study, int studyMemberCnt, boolean isLeader) {
         StudyDto.Response response = new StudyDto.Response();
 
@@ -68,19 +90,30 @@ public interface StudyMapper {
         response.setIsRecruited(study.getIsRecruited());
         response.setStartDate(study.getStudySchedule().getStartDate());
         response.setEndDate(study.getStudySchedule().getEndDate());
+        response.setDayOfWeek(this.responseDayOfWeek(study.getStudySchedule().getStudyDayOfWeek()));
         response.setStartTime(study.getStudySchedule().getStartTime());
         response.setEndTime(study.getStudySchedule().getEndTime());
         response.setTags(study.getTagRefs().stream().map(e -> e.getTag().getTagValue()).collect(Collectors.toList()));
-        response.setLeaderNickName(study.getMember().getNickName());
+        response.setLeaderNickName(study.getLeader().getNickName());
         response.setIsLeader(isLeader);
 
         return response;
     }
 
+    /**
+     * 스터디 리스트 조회
+     * @param studyPage
+     * @return
+     */
     default List<StudyDto.Summary> studyListToResponseList(List<Study> studyPage) {
         return studyPage.stream().map(this::studyToSummary).collect(Collectors.toList());
     }
 
+    /**
+     * 스터디 리스트 조회
+     * @param study
+     * @return
+     */
     default StudyDto.Summary studyToSummary(Study study) {
         StudyDto.Summary studySummary = new StudyDto.Summary();
 
@@ -92,12 +125,89 @@ public interface StudyMapper {
         return studySummary;
     }
 
+    /**
+     * 스터디 리스트 조회
+     * @param tagRefs
+     * @return
+     */
     default List<String> tagRefsToTagList(List<TagRef> tagRefs) {
         return tagRefs.stream().map(TagRef::getTag).map(Tag::getTagValue).collect(Collectors.toList());
     }
 
-    default DayOfWeek dayOfWeekMapping(List<Integer> week, Study study) {
-        DayOfWeek dayOfWeek = new DayOfWeek();
+    /**
+     * 스터디 등록 시
+     * @param member
+     * @param study
+     * @return
+     */
+    default List<StudyJoin> joinMapping(Member member, Study study) {
+        StudyJoin join = new StudyJoin();
+
+        join.setIsApproved(true);
+        join.setMember(member);
+        join.setStudy(study);
+
+        return List.of(join);
+    }
+
+    /**
+     * 스터디 등록 시
+     * @param studyPostDto
+     * @param member
+     * @return
+     */
+    default StudySchedule studyScheduleMapping(StudyDto.Post studyPostDto, Member member) {
+        StudySchedule schedule = new StudySchedule();
+
+        schedule.setStartDate(studyPostDto.getStartDate());
+        schedule.setEndDate(studyPostDto.getEndDate());
+        schedule.setStartTime(studyPostDto.getStartTime());
+        schedule.setEndTime(studyPostDto.getEndTime());
+        schedule.setStudyDayOfWeek(this.dayOfWeekMapping(studyPostDto.getDayOfWeek()));
+        schedule.setScheduleRefs(this.scheduleRefMapping(member, schedule));
+
+        return schedule;
+    }
+
+    /** 스터디 수정 시
+     *
+     * @param studyPatchDto
+     * @return
+     */
+    default StudySchedule studySchedulePatchMapping(StudyDto.Patch studyPatchDto) {
+        StudySchedule schedule = new StudySchedule();
+
+        schedule.setStartDate(studyPatchDto.getStartDate());
+        schedule.setEndDate(studyPatchDto.getEndDate());
+        schedule.setStartTime(studyPatchDto.getStartTime());
+        schedule.setEndTime(studyPatchDto.getEndTime());
+        schedule.setStudyDayOfWeek(this.dayOfWeekMapping(studyPatchDto.getDayOfWeek()));
+
+        return schedule;
+    }
+
+    /**
+     * 스터디 등록 시
+     * @param member
+     * @param studySchedule
+     * @return
+     */
+    default List<ScheduleRef> scheduleRefMapping(Member member, StudySchedule studySchedule) {
+        ScheduleRef scheduleRef = new ScheduleRef();
+
+        scheduleRef.setMember(member);
+        scheduleRef.setStudySchedule(studySchedule);
+
+        return List.of(scheduleRef);
+    }
+
+    /**
+     * 스터디 등록 시
+     * @param week
+     * @return
+     */
+    default StudyDayOfWeek dayOfWeekMapping(List<Integer> week) {
+        StudyDayOfWeek dayOfWeek = new StudyDayOfWeek();
 
         dayOfWeek.setSunday(week.get(0) == 1);
         dayOfWeek.setMonday(week.get(1) == 1);
@@ -110,67 +220,37 @@ public interface StudyMapper {
         return dayOfWeek;
     }
 
-    default List<StudyJoin> joinMapping(Member member, Study study) {
-        StudyJoin join = new StudyJoin();
+    /**
+     * 스터디 조회 시
+     * @param studyDayOfWeek
+     * @return
+     */
+    default List<Integer> responseDayOfWeek(StudyDayOfWeek studyDayOfWeek) {
+        List<Integer> response = new ArrayList<>();
 
-        join.setIsApproved(true);
-        join.setMember(member);
-        join.setStudy(study);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getSunday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getMonday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getTuesday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getWednesday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getThursday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getFriday()) ? 1 : 0);
+        response.add(Boolean.TRUE.equals(studyDayOfWeek.getSaturday()) ? 1 : 0);
 
-        return List.of(join);
+        return response;
     }
 
-    default StudySchedule scheduleMapping(StudyDto.Post studyPostDto, Member member, Study study) {
-        StudySchedule schedule = new StudySchedule();
-
-        schedule.setStartDate(studyPostDto.getStartDate());
-        schedule.setEndDate(studyPostDto.getEndDate());
-        schedule.setStartTime(studyPostDto.getStartTime());
-        schedule.setEndTime(studyPostDto.getEndTime());
-
-        return schedule;
-    }
-
-    default StudySchedule scheduleMapping(StudyDto.Patch studyPatchDto, Study study) {
-        StudySchedule schedule = new StudySchedule();
-
-        schedule.setStartDate(studyPatchDto.getStartDate());
-        schedule.setEndDate(studyPatchDto.getEndDate());
-        schedule.setStartTime(studyPatchDto.getStartTime());
-        schedule.setEndTime(studyPatchDto.getEndTime());
-
-        return schedule;
-    }
-
-
-
-    default List<TagRef> tagMappingTest(List<Tag> tagList, Study study) {
+    /**
+     * 스터디 등록 시
+     * @param tagList
+     * @param study
+     * @return
+     */
+    default List<TagRef> tagMapping(Study study, List<Tag> tagList) {
         return tagList.stream().map(e -> {
             TagRef tagRef = new TagRef();
             tagRef.setStudy(study);
             tagRef.setTag(e);
             return tagRef;
         }).collect(Collectors.toList());
-    }
-
-
-
-    default List<TagRef> tagMapping(List<String> tagDto, Study study) {
-        if (tagDto == null) return null;
-
-        List<Tag> tagList = tagDto.stream().map(this::valueToTag).collect(Collectors.toList());
-
-        return tagList.stream().map(e -> {
-            TagRef tagRef = new TagRef();
-            tagRef.setTag(e);
-            tagRef.setStudy(study);
-            return tagRef;
-        }).collect(Collectors.toList());
-    }
-
-    default Tag valueToTag(String value) {
-        Tag tag = new Tag();
-        tag.setTagValue(value);
-        return tag;
     }
 }

@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+import static javax.persistence.CascadeType.PERSIST;
+import static javax.persistence.CascadeType.REMOVE;
+
 @NoArgsConstructor
 @Getter
 @Setter

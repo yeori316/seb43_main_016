@@ -8,8 +8,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.List;
 
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.CascadeType.REMOVE;
+import static javax.persistence.CascadeType.*;
 
 @NoArgsConstructor
 @Getter

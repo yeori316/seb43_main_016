@@ -125,7 +125,7 @@ public class StudyJoinService {
      */
     public void deleteJoin(Long studyId, String email) {
 
-        if (getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
@@ -160,7 +160,7 @@ public class StudyJoinService {
     @Transactional(readOnly = true)
     public List<StudyJoin> getAllCandidateList(Long studyId, String email) {
 
-        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -176,7 +176,7 @@ public class StudyJoinService {
     @Transactional(readOnly = true)
     public List<StudyJoin> getAllMemberList(Long studyId, String email) {
 
-        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -191,7 +191,7 @@ public class StudyJoinService {
      */
     public void approveCandidateByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -207,7 +207,7 @@ public class StudyJoinService {
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
 
-        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
@@ -223,7 +223,7 @@ public class StudyJoinService {
      */
     public void rejectCandidateByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -238,7 +238,7 @@ public class StudyJoinService {
 
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
-        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 
@@ -253,7 +253,7 @@ public class StudyJoinService {
      */
     public void kickOutMemberByNickName(Long studyId, String nickName, String email) {
 
-        if (!getStudy(studyId).getMember().getEmail().equals(email)) {
+        if (!getStudy(studyId).getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
@@ -269,7 +269,7 @@ public class StudyJoinService {
         if (studyJoin == null) throw new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND);
 
 
-        if (getStudy(studyId).getMember().getNickName().equals(nickName)) {
+        if (getStudy(studyId).getLeader().getNickName().equals(nickName)) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_YOU_ARE_STUDYGROUP_LEADER);
         }
 

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static javax.persistence.CascadeType.REMOVE;
@@ -34,7 +35,7 @@ public class Member extends AuditEntity {
     @Column(nullable = false, unique = true)
     private String nickName;
 
-    @Column
+    @Column(nullable = false)
     private String image;
 
     @Column(columnDefinition = "TEXT")
@@ -48,11 +49,14 @@ public class Member extends AuditEntity {
     @Column(nullable = false)
     private Provider provider;
 
+    @Column
+    private LocalDateTime deletedAt;
+
 
     @OneToMany(mappedBy = "member", cascade = REMOVE)
     private List<MemberSchedule> memberSchedules;
 
-    @OneToMany(mappedBy = "member", cascade = REMOVE)
+    @OneToMany(mappedBy = "leader", cascade = REMOVE)
     private List<Study> leaders;
 
     @OneToMany(mappedBy = "member", cascade = REMOVE)

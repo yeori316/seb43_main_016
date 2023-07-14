@@ -54,8 +54,8 @@ public class MemberService implements MemberManager {
 
         // 닉네임 중복 체크
         String nickName = member.getNickName();
-        Optional<Member> optionalMember1 = repository.findByNickName(nickName);
-        if (optionalMember1.isPresent())
+        optionalMember = repository.findByNickName(nickName);
+        if (optionalMember.isPresent())
             throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_NICKNAME, String.format("%s는 이미 사용중인 닉네임입니다.", nickName));
 
         // 닉네임 금지어 체크
@@ -68,10 +68,6 @@ public class MemberService implements MemberManager {
         List<String> roles = authorityUtils.createRoles(member.getEmail());
         member.setRoles(roles);
 
-        System.out.println("*".repeat(50));
-        System.out.println(roles);
-        System.out.println(member.getRoles());
-
         return repository.save(member);
     }
 
@@ -80,7 +76,7 @@ public class MemberService implements MemberManager {
      * @param member Member
      * @param email String
      */
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    //@Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateNickName(Member member, String email) {
 
         Member findMember = get(email);
