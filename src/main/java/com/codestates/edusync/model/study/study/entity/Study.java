@@ -59,6 +59,6 @@ public class Study extends AuditEntity {
     @OneToMany(mappedBy = "study", cascade = REMOVE)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "study", cascade = ALL)
+    @OneToMany(mappedBy = "study", cascade = ALL, fetch = FetchType.EAGER)
     private List<TagRef> tagRefs;
 }

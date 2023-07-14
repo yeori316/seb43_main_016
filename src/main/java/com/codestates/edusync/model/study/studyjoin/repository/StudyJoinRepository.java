@@ -1,5 +1,6 @@
 package com.codestates.edusync.model.study.studyjoin.repository;
 
+import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,8 +14,7 @@ public interface StudyJoinRepository extends JpaRepository<StudyJoin, Long> {
      * @param memberId
      * @return
      */
-    //@EntityGraph(attributePaths = "studygroup.searchTags")
-    List<StudyJoin> findAllByMemberIdAndIsApprovedIsFalse(Long memberId);
+    List<StudyJoin> findAllByMemberAndIsApprovedIsFalse(Member member);
 
     /**
      * 사용자가 가입된 스터디 리스트

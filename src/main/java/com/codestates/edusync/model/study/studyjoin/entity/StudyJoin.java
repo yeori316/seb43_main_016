@@ -22,7 +22,7 @@ public class StudyJoin extends AuditEntity {
     @JoinColumn(name = "memberId")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "studyId")
     private Study study;
 }

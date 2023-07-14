@@ -23,7 +23,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/study/leader")
+@RequestMapping("/leader")
 @Validated
 public class StudyLeaderController {
     private final StudyMapper studyMapper;
@@ -38,11 +38,12 @@ public class StudyLeaderController {
      * @param patchLeader
      * @return
      */
-    @PatchMapping("/{study-id}/leader")
+    @PatchMapping("/{study-id}")
     public ResponseEntity<String> patchLeader(Authentication authentication,
                                               @PathVariable("study-id") @Positive Long studyId,
                                               @RequestBody StudyDto.PatchLeader patchLeader) {
 
+        // TODO 멤버가 아닌데도 권한 수정이 됨
         studyService.updateLeader(
                 studyId,
                 service.getMember(authentication.getName()).getEmail(),
@@ -57,7 +58,7 @@ public class StudyLeaderController {
      * @param authentication
      * @return
      */
-    @GetMapping("/leader")
+    @GetMapping
     public ResponseEntity getLeaderList(Authentication authentication) {
         return ResponseEntity.ok(
                 new CommonDto.ResponseList<>(
@@ -75,7 +76,7 @@ public class StudyLeaderController {
      * @param authentication
      * @return
      */
-    @GetMapping("/{study-id}/apply")
+    @GetMapping("/{study-id}/wait")
     public ResponseEntity getJoin(Authentication authentication,
                                   @PathVariable("study-id") @Positive Long studyId) {
 
@@ -94,7 +95,7 @@ public class StudyLeaderController {
      * @param authentication
      * @return
      */
-    @GetMapping("/{study-id}/member")
+    @GetMapping("/{study-id}/members")
     public ResponseEntity getStudygroupJoins(Authentication authentication,
                                              @PathVariable("study-id") @Positive Long studyId) {
 
@@ -114,7 +115,7 @@ public class StudyLeaderController {
      * @param authentication
      * @return
      */
-    @PatchMapping("/{studygroup-id}")
+    @PatchMapping("/{studygroup-id}/apply")
     public ResponseEntity postStudygroupJoinApprove(Authentication authentication,
                                                     @PathVariable("studygroup-id") @Positive Long studygroupId,
                                                     @Valid @RequestBody StudyJoinDto.Dto studygroupJoinDto) {
@@ -135,7 +136,7 @@ public class StudyLeaderController {
      * @param authentication
      * @return
      */
-    @DeleteMapping("/{study-id}")
+    @DeleteMapping("/{study-id}/reject")
     public ResponseEntity deleteStudygroupJoinReject(Authentication authentication,
                                                      @PathVariable("study-id") @Positive Long studyId,
                                                      @Valid @RequestBody StudyJoinDto.Dto studygroupJoinDto) {

@@ -1,6 +1,7 @@
 package com.codestates.edusync.model.study.studyjoin.controller;
 
 import com.codestates.edusync.model.common.dto.CommonDto;
+import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.studyjoin.service.StudyJoinService;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,12 @@ import javax.validation.constraints.Positive;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/study-join")
+@RequestMapping("/join")
 @Validated
 public class StudyJoinController {
     private final StudyMapper studyMapper;
     private final StudyJoinService service;
+    private final MemberService memberService;
 
     /**
      * 스터디 가입 신청
@@ -41,13 +43,13 @@ public class StudyJoinController {
      * @param authentication
      * @return
      */
-    @GetMapping("/apply")
+    @GetMapping("/wait")
     public ResponseEntity getApplyList(Authentication authentication) {
 
         return ResponseEntity.ok(
                 new CommonDto.ResponseList<>(
                         studyMapper.studyListToResponseList(
-                                service.getApplyList(authentication.getName())
+                                service.getWaitList(authentication.getName())
                         )
                 )
         );
@@ -58,7 +60,7 @@ public class StudyJoinController {
      * @param authentication
      * @return
      */
-    @GetMapping("/join")
+    @GetMapping
     public ResponseEntity getJoinList(Authentication authentication) {
 
         return ResponseEntity.ok(
@@ -77,7 +79,7 @@ public class StudyJoinController {
      * @param authentication
      * @return
      */
-    @DeleteMapping("/apply/{study-id}")
+    @DeleteMapping("/wait/{study-id}")
     public ResponseEntity deleteApply(Authentication authentication,
                                       @PathVariable("study-id") @Positive Long studyId) {
 
@@ -91,7 +93,7 @@ public class StudyJoinController {
      * @param authentication
      * @return
      */
-    @DeleteMapping("/join/{study-id}")
+    @DeleteMapping("/{study-id}")
     public ResponseEntity deleteJoin(Authentication authentication,
                                      @PathVariable("study-id") @Positive Long studyId) {
 

@@ -4,8 +4,10 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberManager;
+import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.service.StudyManager;
+import com.codestates.edusync.model.study.study.service.StudyService;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class StudyJoinService {
     private final StudyJoinRepository repository;
+    private final MemberService memberService;
+    private final StudyService studyService;
     private final MemberManager memberManager;
     private final StudyManager studyManager;
 
@@ -69,10 +73,12 @@ public class StudyJoinService {
      * @param email
      * @return
      */
-    @Transactional(readOnly = true)
-    public List<Study> getApplyList(String email) {
-        return repository.findAllByMemberIdAndIsApprovedIsFalse(getMember(email).getId())
-                .stream().map(StudyJoin::getStudy).collect(Collectors.toList());
+    //@Transactional(readOnly = true)
+    public List<Study> getWaitList(String email) {
+        return repository.findAllByMemberAndIsApprovedIsFalse(getMember(email))
+                .stream()
+                .map(StudyJoin::getStudy)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -93,7 +99,7 @@ public class StudyJoinService {
      */
     @Transactional(readOnly = true)
     public List<Study> getLeaderList(String email) {
-        return studyManager.getLeaderStudyList(email);
+        return studyService.getLeaderStudyList(email);
     }
 
     /**

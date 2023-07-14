@@ -21,7 +21,7 @@ public class TagRef extends BaseEntity {
     @JoinColumn(name = "studyId")
     private Study study;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "tagId")
     private Tag tag;
 }

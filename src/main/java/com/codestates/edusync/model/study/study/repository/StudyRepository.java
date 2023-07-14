@@ -16,7 +16,7 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
      * @param memberId
      * @return
      */
-    List<Study> findAllByleaderId(Member memberId);
+    List<Study> findAllByLeader(Member member);
 
     //@EntityGraph(attributePaths = {"searchTags", "leaderMember"})
     Optional<Study> findById(Long studyId);

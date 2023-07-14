@@ -5,6 +5,7 @@ import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberManager;
+import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.repository.StudyRepository;
 import com.codestates.edusync.model.study.study.utils.SortOrder;
@@ -13,6 +14,7 @@ import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinReposito
 import com.codestates.edusync.model.study.tag.entity.Tag;
 import com.codestates.edusync.model.study.tag.service.TagRefService;
 import com.codestates.edusync.model.study.tag.service.TagService;
+import com.sun.xml.bind.v2.TODO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +34,7 @@ import java.util.Optional;
 public class StudyService implements StudyManager{
     private final StudyRepository repository;
     private final StudyJoinRepository studyJoinRepository;
+    private final MemberService memberService;
     private final MemberManager memberManager;
     private final AwsS3Service awsS3Service;
     private final TagRefService tagRefService;
@@ -133,6 +136,7 @@ public class StudyService implements StudyManager{
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
+        // TODO 해당 닉네임이 멤버 인지 체크 필요
 
         findStudy.setLeader(
                 this.find(
@@ -230,6 +234,7 @@ public class StudyService implements StudyManager{
     @Override
     @Transactional(readOnly = true)
     public List<Study> getLeaderStudyList(String email) {
-        return repository.findAllByleaderId(getMember(email));
+        Member member = memberService.get(email);
+        return repository.findAllByLeader(member);
     }
 }
