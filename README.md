@@ -4,12 +4,11 @@
 기존 <br>
 <a href="https://www.edusync.site">프론트 배포</a> / <a href="https://wish17.store">백엔드 배포</a>
 
-<br>
+<br><br>
 
 리팩토링 <br>
 <a href="http://edusync-refector.s3-website-us-east-1.amazonaws.com">프론트 배포</a> / 
 <a href="https://ec2-3-36-48-195.ap-northeast-2.compute.amazonaws.com">백엔드 배포</a>
-
 <br>
 
 ## Refactoring 진행
