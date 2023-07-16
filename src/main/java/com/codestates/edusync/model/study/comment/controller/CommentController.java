@@ -1,13 +1,13 @@
 package com.codestates.edusync.model.study.comment.controller;
 
 import com.codestates.edusync.model.common.dto.CommonDto;
+import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.comment.dto.CommentDto;
-import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.comment.mapper.CommentMapper;
 import com.codestates.edusync.model.study.comment.service.CommentService;
+import com.codestates.edusync.model.study.study.service.StudyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +26,8 @@ import javax.validation.constraints.Positive;
 public class CommentController {
     private final CommentMapper mapper;
     private final CommentService service;
+    private final MemberService memberService;
+    private final StudyService studyService;
 
     /**
      * 댓글 등록
@@ -33,13 +36,13 @@ public class CommentController {
      * @return
      */
     @PostMapping("/{study-id}")
-    public ResponseEntity post(Authentication authentication,
-                               @PathVariable("study-id") @Positive Long studyId,
-                               @Valid @RequestBody CommentDto.Post postDto) {
+    public ResponseEntity<String> post(Authentication authentication,
+                                       @PathVariable("study-id") @Positive Long studyId,
+                                       @Valid @RequestBody CommentDto.Post postDto) {
 
         service.create(
-                authentication.getName(),
-                studyId,
+                memberService.get(authentication.getName()),
+                studyService.get(studyId),
                 mapper.commentPostToComment(postDto)
         );
 
@@ -53,15 +56,14 @@ public class CommentController {
      * @param patchDto
      * @return
      */
-    @PatchMapping("/{study-id}/{comment-id}")
-    public ResponseEntity patch(Authentication authentication,
-                                @PathVariable("study-id") @Positive Long studyId,
-                                @PathVariable("comment-id") @Positive Long commentId,
-                                @Valid @RequestBody CommentDto.Patch patchDto) {
+    @PatchMapping("/{study-id}")
+    public ResponseEntity<String> patch(Authentication authentication,
+                                        @PathVariable("study-id") @Positive Long studyId,
+                                        @Valid @RequestBody CommentDto.Patch patchDto) {
 
         service.update(
-                authentication.getName(),
-                studyId, commentId,
+                memberService.get(authentication.getName()),
+                studyService.get(studyId),
                 mapper.commentPatchToComment(patchDto)
         );
 
@@ -74,18 +76,18 @@ public class CommentController {
      * @return
      */
     @GetMapping("/{study-id}")
-    public ResponseEntity getList(Authentication authentication,
-                                  @PathVariable("study-id") @Positive Long studyId,
-                                  @RequestParam("page") @Positive Integer page,
-                                  @RequestParam("size") @Positive Integer size) {
-
-        Page<Comment> commentPage = service.getList(studyId, page-1, size);
+    public ResponseEntity<CommonDto.ResponsePage<List<CommentDto.Response>>> getList(
+            Authentication authentication,
+            @PathVariable("study-id") @Positive Long studyId,
+            @RequestParam("page") @Positive Integer page,
+            @RequestParam("size") @Positive Integer size) {
 
         return ResponseEntity.ok(
-                new CommonDto.ResponsePage<>(
-                        mapper.commentsToResponesList(commentPage.getContent(), authentication.getName()),
-                        commentPage
-                )
+                service.getListDto(
+                        studyService.get(studyId),
+                        memberService.get(authentication.getName()),
+                        page-1,
+                        size)
         );
     }
 
@@ -96,13 +98,14 @@ public class CommentController {
      * @return
      */
     @DeleteMapping("/{study-id}/{comment-id}")
-    public ResponseEntity delete(Authentication authentication,
-                                 @PathVariable("study-id") @Positive Long studyId,
-                                 @PathVariable("comment-id") @Positive Long commentId) {
+    public ResponseEntity<String> delete(Authentication authentication,
+                                         @PathVariable("study-id") @Positive Long studyId,
+                                         @PathVariable("comment-id") @Positive Long commentId) {
 
         service.delete(
-                authentication.getName(),
-                studyId, commentId
+                memberService.get(authentication.getName()),
+                studyService.get(studyId),
+                commentId
         );
 
         return ResponseEntity.ok().build();

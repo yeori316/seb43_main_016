@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.schedule.common.entity;
+package com.codestates.edusync.model.schedule.entity;
 
 import com.codestates.edusync.model.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -14,6 +14,12 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class Schedule extends BaseEntity {
+    @Column(length = 100, nullable = false)
+    private String title;
+
+    @Column
+    private String description;
+
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;

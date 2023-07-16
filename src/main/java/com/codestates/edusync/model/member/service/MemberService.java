@@ -3,9 +3,15 @@ package com.codestates.edusync.model.member.service;
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.service.AwsS3Service;
+import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.entity.Member;
+import com.codestates.edusync.model.member.mapper.MemberDtoMapper;
 import com.codestates.edusync.model.member.repository.MemberRepository;
 import com.codestates.edusync.model.member.utils.NickNameCheckUtil;
+import com.codestates.edusync.model.study.study.entity.Study;
+import com.codestates.edusync.model.study.study.repository.StudyRepository;
+import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
+import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
 import com.codestates.edusync.security.auth.utils.CustomAuthorityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,19 +30,22 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class MemberService implements MemberManager {
-    private final MemberRepository repository;
-    private final AwsS3Service awsS3Service;
+public class MemberService {
     private final CustomAuthorityUtils authorityUtils;
-    private final NickNameCheckUtil nickNameCheckUtil;
     private final PasswordEncoder passwordEncoder;
+    private final MemberRepository repository;
+    private final StudyRepository studyRepository;
+    private final StudyJoinRepository joinRepository;
+    private final AwsS3Service awsS3Service;
+    private final NickNameCheckUtil nickNameCheckUtil;
+    private final MemberDtoMapper dtoMapper;
 
     /**
      * 회원 가입
      * @param member Member
      * @return Member
      */
-    public Member create(Member member) {
+    public void create(Member member) {
         // 이메일 중복 체크
         String email = member.getEmail();
         Optional<Member> optionalMember = repository.findByEmail(email);
@@ -68,7 +77,7 @@ public class MemberService implements MemberManager {
         List<String> roles = authorityUtils.createRoles(member.getEmail());
         member.setRoles(roles);
 
-        return repository.save(member);
+        repository.save(member);
     }
 
     /**
@@ -138,7 +147,7 @@ public class MemberService implements MemberManager {
      * @param email String
      * @param image Image
      */
-    public void updateImage(String email, MultipartFile image) {
+    public void updateImage(MultipartFile image, String email) {
         Member findMember = get(email);
         findMember.setImage(awsS3Service.uploadImage(image, "/member"));
         repository.save(findMember);
@@ -149,7 +158,6 @@ public class MemberService implements MemberManager {
      * @param email String
      * @return Member
      */
-    @Override
     @Transactional(readOnly = true)
     public Member get(String email) {
         Optional<Member> optionalMember = repository.findByEmail(email);
@@ -171,7 +179,6 @@ public class MemberService implements MemberManager {
      * @param nickName
      * @return
      */
-    @Override
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
         Optional<Member> optionalMember = repository.findByNickName(nickName);
@@ -186,6 +193,43 @@ public class MemberService implements MemberManager {
         }
 
         return findMember;
+    }
+
+
+
+    /**
+     * 스터디 가입 신청자 | 스터디 멤버 리스트 조회
+     * @param studyId
+     * @param email
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public MemberDto.MembersResponse getStudyMembers(Long studyId, String email, Boolean isMember) {
+
+        get(email);
+        Study study =
+                studyRepository.findById(studyId)
+                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+
+        List<StudyJoin> studyJoinList;
+
+        if (Boolean.TRUE.equals(isMember)) {
+            studyJoinList = joinRepository.findAllByStudyAndIsApprovedIsTrue(study);
+
+            studyJoinList
+                    .stream()
+                    .filter(e -> e.getMember().getEmail().equals(email))
+                    .findFirst()
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+        } else {
+            if (!study.getLeader().getEmail().equals(email)) {
+                throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
+            }
+
+            studyJoinList = joinRepository.findAllByStudyAndIsApprovedIsFalse(study);
+        }
+
+        return dtoMapper.studyJoinListToStudyMembersDto(studyJoinList);
     }
 
     /**

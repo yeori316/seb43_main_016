@@ -8,6 +8,8 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 public class MemberDto {
@@ -20,6 +22,8 @@ public class MemberDto {
         private String email;
 
         @NotBlank(message = "비밀번호는 공백이 아니어야 합니다.")
+        @Pattern(regexp = "/^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,25}$/g.",
+                message = "비밀번호는 8~25자리의 영문 대소문자, 숫자, 특수문자 조합이어야 합니다.")
         private String password;
 
         @NotBlank(message = "닉네임은 공백이 아니어야 합니다.")
@@ -62,7 +66,7 @@ public class MemberDto {
     @NoArgsConstructor
     @Setter
     @Getter
-    public static class MemberInfo {
+    public static class MyInfo {
         private String email;
         private String nickName;
         private String image;
@@ -78,5 +82,12 @@ public class MemberDto {
         private String nickName;
         private String image;
         private String aboutMe;
+    }
+
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class MembersResponse {
+        private List<String> nickName;
     }
 }

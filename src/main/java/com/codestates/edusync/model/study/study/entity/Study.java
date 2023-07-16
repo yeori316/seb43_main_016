@@ -2,7 +2,7 @@ package com.codestates.edusync.model.study.study.entity;
 
 import com.codestates.edusync.model.common.entity.AuditEntity;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.schedule.studySchedule.entity.StudySchedule;
+import com.codestates.edusync.model.schedule.entity.StudySchedule;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.tag.entity.TagRef;
@@ -48,7 +48,7 @@ public class Study extends AuditEntity {
     @JoinColumn(name = "memberId")
     private Member leader;
 
-    @OneToOne(cascade = {PERSIST, REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "studyScheduleId")
     private StudySchedule studySchedule;
 
@@ -59,6 +59,6 @@ public class Study extends AuditEntity {
     @OneToMany(mappedBy = "study", cascade = REMOVE)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "study", cascade = ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "study", cascade = ALL)
     private List<TagRef> tagRefs;
 }

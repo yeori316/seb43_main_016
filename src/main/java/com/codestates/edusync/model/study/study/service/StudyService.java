@@ -2,19 +2,18 @@ package com.codestates.edusync.model.study.study.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberManager;
 import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
+import com.codestates.edusync.model.study.study.mapper.StudyDtoMapper;
 import com.codestates.edusync.model.study.study.repository.StudyRepository;
 import com.codestates.edusync.model.study.study.utils.SortOrder;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
-import com.codestates.edusync.model.study.tag.entity.Tag;
 import com.codestates.edusync.model.study.tag.service.TagRefService;
-import com.codestates.edusync.model.study.tag.service.TagService;
-import com.sun.xml.bind.v2.TODO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,26 +25,27 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class StudyService implements StudyManager{
+public class StudyService {
     private final StudyRepository repository;
-    private final StudyJoinRepository studyJoinRepository;
+    private final StudyJoinRepository joinRepository;
     private final MemberService memberService;
-    private final MemberManager memberManager;
-    private final AwsS3Service awsS3Service;
     private final TagRefService tagRefService;
+    private final AwsS3Service awsS3Service;
+    private final StudyDtoMapper dtoMapper;
 
     /**
      * 스터디 등록
      * @param study Study
      * @return Study
      */
-    public Study create(Study study) {
-        return repository.save(study);
+    public void create(Study study) {
+        repository.save(study);
     }
 
     /**
@@ -130,36 +130,23 @@ public class StudyService implements StudyManager{
      */
     public void updateLeader(Long studyId, String email, String newLeaderNickName) {
 
+        memberService.get(email);
+
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
-        // TODO 해당 닉네임이 멤버 인지 체크 필요
 
-        findStudy.setLeader(
-                this.find(
-                        studyId,
-                        memberManager.getNickName(newLeaderNickName).getId()
-                ).getMember()
-        );
+        Member newLeader = memberService.getNickName(newLeaderNickName);
+
+        joinRepository.findByStudyIdAndMemberIdAndIsApprovedTrue(studyId, newLeader.getId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_PRIVILEGES_MEMBER_NOT_FOUND));
+
+        findStudy.setLeader(newLeader);
 
         repository.save(findStudy);
-    }
-
-    /**
-     * 스터디 리더 수정 시
-     * @param studyId
-     * @param memberId
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public StudyJoin find(Long studyId, Long memberId) {
-        Optional<StudyJoin> optionalStudyJoin = studyJoinRepository.findByStudyIdAndMemberId(studyId, memberId);
-
-        return optionalStudyJoin.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.STUDYGROUP_PRIVILEGES_MEMBER_NOT_FOUND));
     }
 
     /**
@@ -167,7 +154,6 @@ public class StudyService implements StudyManager{
      * @param studyId
      * @return
      */
-    @Override
     @Transactional(readOnly = true)
     public Study get(Long studyId) {
 
@@ -176,18 +162,84 @@ public class StudyService implements StudyManager{
     }
 
     /**
-     * 스터디 리스트 조회
+     * 스터디 조회 DTO 반환
+     * @param studyId
+     * @param email
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public StudyDto.Response getDto(Long studyId, String email) {
+
+        // 멤버 확인용
+        memberService.get(email);
+        Study study = get(studyId);
+
+        return dtoMapper.studyToResponse(
+                study,
+                joinRepository.countByStudyAndIsApprovedIsTrue(study),
+                study.getLeader().getEmail().equals(email)
+        );
+    }
+
+    /**
+     * 스터디 리스트 조회 DTO 반환
      * @param page
      * @param size
      * @param sort
      * @return
      */
     @Transactional(readOnly = true)
-    public Page<Study> getList(Integer page, Integer size, String sort) {
-        return repository.findAll(
+    public CommonDto.ResponsePage<List<StudyDto.Summary>> getListDto(Integer page, Integer size, String sort) {
+
+        Page<Study> studyPage = repository.findAll(
                 PageRequest.of(page, size, Sort.by(SortOrder.getString(sort)).descending())
         );
+
+        List<StudyDto.Summary> responseList =
+                dtoMapper.studyListToResponseList(studyPage.getContent());
+
+        return new CommonDto.ResponsePage<>(responseList, studyPage);
     }
+
+    /**
+     * 리더인 스터디 리스트 조회 DTO 반환
+     * @param email
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public CommonDto.ResponseList<List<StudyDto.Summary>> getLeaderStudyListDto(String email) {
+
+        return new CommonDto.ResponseList<>(
+                dtoMapper.studyListToResponseList(
+                        repository.findAllByLeader(memberService.get(email)))
+        );
+    }
+
+    /**
+     * 가입 신청된 | 가입된 스터디 리스트 조회 DTO 반환
+     * @param email
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public CommonDto.ResponseList<List<StudyDto.Summary>> getJoinListDto(String email, Boolean isMember) {
+
+        List<Study> studyList;
+
+        if (Boolean.TRUE.equals(isMember)) {
+            studyList = joinRepository.findAllByMemberAndIsApprovedIsTrue(memberService.get(email))
+                    .stream()
+                    .map(StudyJoin::getStudy)
+                    .collect(Collectors.toList());
+        } else {
+            studyList = joinRepository.findAllByMemberAndIsApprovedIsFalse(memberService.get(email))
+                    .stream()
+                    .map(StudyJoin::getStudy)
+                    .collect(Collectors.toList());
+        }
+
+        return new CommonDto.ResponseList<>(dtoMapper.studyListToResponseList(studyList));
+    }
+
 
     /**
      * 스터디 삭제
@@ -204,37 +256,5 @@ public class StudyService implements StudyManager{
         }
 
         repository.deleteById(studyId);
-    }
-
-    /**
-     * 회원 조회
-     * @param email
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public Member getMember(String email) {
-        return memberManager.get(email);
-    }
-
-    /**
-     * 스터디 멤버 수 조회
-     * @param studyId
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public int getStudyMemberCount(Long studyId) {
-        return studyJoinRepository.countByStudyIdAndIsApprovedIsTrue(studyId);
-    }
-
-    /**
-     * 리더인 스터디 리스트 조회
-     * @param email
-     * @return
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<Study> getLeaderStudyList(String email) {
-        Member member = memberService.get(email);
-        return repository.findAllByLeader(member);
     }
 }

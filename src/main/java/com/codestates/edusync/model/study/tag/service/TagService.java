@@ -1,6 +1,13 @@
 package com.codestates.edusync.model.study.tag.service;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.dto.CommonDto;
+import com.codestates.edusync.model.study.study.dto.StudyDto;
+import com.codestates.edusync.model.study.study.entity.Study;
+import com.codestates.edusync.model.study.study.mapper.StudyDtoMapper;
 import com.codestates.edusync.model.study.tag.entity.Tag;
+import com.codestates.edusync.model.study.tag.entity.TagRef;
 import com.codestates.edusync.model.study.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class TagService {
     private final TagRepository repository;
+    private final StudyDtoMapper studyDtoMapper;
 
     public Tag create(String value) {
         Tag findTag = get(value);
@@ -33,5 +41,19 @@ public class TagService {
 
     public List<Tag> getList(List<String> tags) {
         return tags.stream().map(this::create).collect(Collectors.toList());
+    }
+
+    public CommonDto.ResponseList<List<StudyDto.Summary>> search(String value) {
+
+        Tag tag = get(value);
+        if (tag == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND);
+
+        List<TagRef> tagList = tag.getTagRefs();
+
+        return new CommonDto.ResponseList<>(
+                studyDtoMapper.studyListToResponseList(
+                        tagList.stream().map(TagRef::getStudy).collect(Collectors.toList())
+                )
+        );
     }
 }

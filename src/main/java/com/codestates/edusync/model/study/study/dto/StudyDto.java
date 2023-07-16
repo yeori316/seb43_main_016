@@ -101,6 +101,9 @@ public class StudyDto {
         private String nickName;
     }
 
+    /**
+     * 스터디 조회
+     */
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
@@ -137,7 +140,7 @@ public class StudyDto {
     }
 
     /**
-     * 스터디 조회
+     * 스터디 리스트 조회
      */
     @AllArgsConstructor
     @NoArgsConstructor

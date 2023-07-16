@@ -2,10 +2,14 @@ package com.codestates.edusync.model.member.mapper;
 
 import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.entity.Member;
+import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
+import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberMapper {
@@ -78,21 +82,21 @@ public interface MemberMapper {
      * @param member member
      * @return memberResponseDto
      */
-    default MemberDto.MemberInfo memberToMemberInfoResponse(Member member) {
+    default MemberDto.MyInfo memberToMemberInfoResponse(Member member) {
         if (member == null) return null;
 
-        MemberDto.MemberInfo memberInfoDto = new MemberDto.MemberInfo();
+        MemberDto.MyInfo myInfoDto = new MemberDto.MyInfo();
 
-        memberInfoDto.setEmail(member.getEmail());
-        memberInfoDto.setNickName(member.getNickName());
-        memberInfoDto.setImage(member.getImage());
-        memberInfoDto.setAboutMe(member.getAboutMe());
+        myInfoDto.setEmail(member.getEmail());
+        myInfoDto.setNickName(member.getNickName());
+        myInfoDto.setImage(member.getImage());
+        myInfoDto.setAboutMe(member.getAboutMe());
 
         if (member.getRoles() != null) {
-            memberInfoDto.setRoles(member.getRoles());
+            myInfoDto.setRoles(member.getRoles());
         }
 
-        return memberInfoDto;
+        return myInfoDto;
     }
 
     default MemberDto.MemberResponse memberToMemberResponse(Member member) {

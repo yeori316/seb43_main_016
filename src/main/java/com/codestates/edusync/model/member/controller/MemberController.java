@@ -1,6 +1,5 @@
 package com.codestates.edusync.model.member.controller;
 
-import com.codestates.edusync.model.common.utils.UriCreator;
 import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.mapper.MemberMapper;
 import com.codestates.edusync.model.member.service.MemberService;
@@ -10,16 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.net.URI;
 import java.util.Map;
 
-@Transactional
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -37,9 +35,7 @@ public class MemberController {
     @PostMapping // TODO 패스워드 규칙 적용 필요
     public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
         service.create(mapper.memberPostToMember(postDto));
-        // TODO URI 필요한가?
-        URI loginUri = UriCreator.createUri("members", "login");
-        return ResponseEntity.created(loginUri).build();
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     /**
@@ -61,7 +57,7 @@ public class MemberController {
      * @param patchPassDto MemberPatchPassDto
      * @return String
      */
-    @PatchMapping("/pass") // uri 변경 필요
+    @PatchMapping("/pass")
     public ResponseEntity<String> patchPass(Authentication authentication,
                                             @Valid @RequestBody MemberDto.PatchPassword patchPassDto) {
         service.updatePassword(mapper.memberPatchPasswordToMember(patchPassDto), authentication.getName());
@@ -90,7 +86,7 @@ public class MemberController {
     @PatchMapping("/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
                                              @RequestPart(value="image") MultipartFile image) {
-        service.updateImage(authentication.getName(), image);
+        service.updateImage(image, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -100,12 +96,12 @@ public class MemberController {
      * @return Response
      */
     @GetMapping
-    public ResponseEntity<MemberDto.MemberInfo> getMyInfo(Authentication authentication) {
+    public ResponseEntity<MemberDto.MyInfo> getMyInfo(Authentication authentication) {
 
-        MemberDto.MemberInfo memberInfoDto =
+        MemberDto.MyInfo myInfoDto =
                 mapper.memberToMemberInfoResponse(service.get(authentication.getName()));
 
-        return new ResponseEntity<>(memberInfoDto, HttpStatus.OK);
+        return new ResponseEntity<>(myInfoDto, HttpStatus.OK);
     }
 
     /**
@@ -113,8 +109,13 @@ public class MemberController {
      * @param nickName
      * @return
      */
-    @GetMapping("/{nickName}") // TODO : 쿼리 스트링 난독화 필요
+    @GetMapping("/{nickName}")
     public ResponseEntity<MemberDto.MemberResponse> get(@PathVariable String nickName) {
+
+//        String decode = URLDecoder.decode(studyId, "UTF-8");
+//        Base64.Decoder decoder = Base64.getDecoder();
+//        byte[] decodedBytes = decoder.decode(decode.getBytes());
+//        long id = Long.valueOf(new String(decodedBytes));
 
         MemberDto.MemberResponse memberResponseDto =
                 mapper.memberToMemberResponse(service.getNickName(nickName));
@@ -122,15 +123,46 @@ public class MemberController {
         return new ResponseEntity<>(memberResponseDto, HttpStatus.OK);
     }
 
+
     /**
-     * 회원 탈퇴(소프트 삭제)
-     * @param authentication 토큰
-     * @return URI
+     * 스터디 가입 신청자 | 스터디 멤버 리스트 조회
+     * @param studyId
+     * @param authentication
+     * @return
      */
-    @DeleteMapping
-    public ResponseEntity<URI> delete(Authentication authentication) {
-        service.delete(authentication.getName());
-        return ResponseEntity.ok().build();
+    @GetMapping("/list") // URI 수정
+    public ResponseEntity<MemberDto.MembersResponse> getWaitStudyMembers(Authentication authentication,
+                                                                         @RequestParam("s") @Positive Long studyId,
+                                                                         @RequestParam("m") Boolean isMember) {
+
+        return ResponseEntity.ok(service.getStudyMembers(studyId, authentication.getName(), isMember));
+    }
+
+
+
+
+    /**
+     * 패스워드 인증
+     * @param authentication 토큰
+     * @param checkPassword requestBody
+     * @return response
+     */
+    @PostMapping("/pass-auth")
+    public ResponseEntity<Object> checkPassword(Authentication authentication,
+                                                @RequestBody MemberDto.PatchPassword checkPassDto) {
+        return new ResponseEntity<>(
+                service.checkPassword(authentication.getName(), checkPassDto.getPassword()) ?
+                        HttpStatus.OK : HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * 회원 가입 구분
+     * @param authentication 토큰
+     * @return response
+     */
+    @GetMapping("/provider")
+    public ResponseEntity<Map<String, String>> getProvider(Authentication authentication){
+        return ResponseEntity.ok(service.getProvider(authentication.getName()));
     }
 
     /**
@@ -145,26 +177,13 @@ public class MemberController {
     }
 
     /**
-     * 패스워드 인증
+     * 회원 탈퇴(소프트 삭제)
      * @param authentication 토큰
-     * @param checkPassword requestBody
-     * @return response
+     * @return URI
      */
-    @PostMapping("/pass-auth")
-    public ResponseEntity<Object> checkPassword(Authentication authentication,
-                                                @RequestBody MemberDto.PatchPassword checkPassword) {
-        return new ResponseEntity<>(
-                service.checkPassword(authentication.getName(), checkPassword.getPassword()) ?
-                        HttpStatus.OK : HttpStatus.UNAUTHORIZED);
-    }
-
-    /**
-     * 회원 가입 구분
-     * @param authentication 토큰
-     * @return response
-     */
-    @GetMapping("/provider")
-    public ResponseEntity<Map<String, String>> getProvider(Authentication authentication){
-        return ResponseEntity.ok(service.getProvider(authentication.getName()));
+    @DeleteMapping
+    public ResponseEntity<URI> delete(Authentication authentication) {
+        service.delete(authentication.getName());
+        return ResponseEntity.ok().build();
     }
 }

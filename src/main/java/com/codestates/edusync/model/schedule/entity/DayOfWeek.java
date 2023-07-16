@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.schedule.common.entity;
+package com.codestates.edusync.model.schedule.entity;
 
 import com.codestates.edusync.model.common.entity.BaseEntity;
 import lombok.Getter;

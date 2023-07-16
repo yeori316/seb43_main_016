@@ -70,7 +70,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://edusync-refector.s3-website-us-east-1.amazonaws.com", "http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://edusync-refector.s3-website-us-east-1.amazonaws.com", "http://localhost:5173", "http://localhost:4173"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Refresh", "content-type"));
         configuration.setExposedHeaders(Arrays.asList("*"));

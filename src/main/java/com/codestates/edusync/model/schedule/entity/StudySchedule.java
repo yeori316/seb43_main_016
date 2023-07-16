@@ -1,6 +1,6 @@
-package com.codestates.edusync.model.schedule.studySchedule.entity;
+package com.codestates.edusync.model.schedule.entity;
 
-import com.codestates.edusync.model.schedule.common.entity.Schedule;
+import com.codestates.edusync.model.study.study.entity.Study;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,10 +16,13 @@ import static javax.persistence.CascadeType.*;
 @Entity
 @Table
 public class StudySchedule extends Schedule {
-    @OneToOne(cascade = {PERSIST, REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "studyDayOfWeekId")
     private StudyDayOfWeek studyDayOfWeek;
 
     @OneToMany(mappedBy = "studySchedule", cascade = {PERSIST, REMOVE})
     private List<ScheduleRef> ScheduleRefs;
+
+    @OneToOne(mappedBy = "studySchedule", fetch = FetchType.LAZY)
+    private Study study;
 }

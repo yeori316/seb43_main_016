@@ -1,12 +1,15 @@
 package com.codestates.edusync.model.study.comment.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberManager;
+import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.study.comment.dto.CommentDto;
 import com.codestates.edusync.model.study.comment.entity.Comment;
+import com.codestates.edusync.model.study.comment.mapper.CommentDtoMapper;
 import com.codestates.edusync.model.study.comment.repository.CommentRepository;
 import com.codestates.edusync.model.study.study.entity.Study;
-import com.codestates.edusync.model.study.study.service.StudyManager;
+import com.codestates.edusync.model.study.study.service.StudyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.codestates.edusync.exception.ExceptionCode.*;
@@ -25,8 +29,7 @@ import static com.codestates.edusync.exception.ExceptionCode.*;
 @Service
 public class CommentService {
     private final CommentRepository repository;
-    private final MemberManager memberManager;
-    private final StudyManager studyManager;
+    private final CommentDtoMapper dtoMapper;
 
     /**
      * 댓글 등록
@@ -34,10 +37,10 @@ public class CommentService {
      * @param comment
      * @param email
      */
-    public void create(String email, Long studyId, Comment comment) {
+    public void create(Member member, Study study, Comment comment) {
 
-        comment.setMember(getMember(email));
-        comment.setStudy(getStudy(studyId));
+        comment.setMember(member);
+        comment.setStudy(study);
 
         repository.save(comment);
     }
@@ -46,22 +49,20 @@ public class CommentService {
      * 댓글 수정
      * @param email
      * @param studyId
-     * @param commentId
      * @param comment
      * @return
      */
-    public Comment update(String email, Long studyId, Long commentId, Comment comment) {
+    public Comment update(Member member, Study study, Comment comment) {
 
-        Comment findComment = repository.findById(commentId).orElseThrow( () ->
+        Comment findComment = repository.findById(comment.getId()).orElseThrow( () ->
                         new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_FOUND));
 
-
-        if( !findComment.getStudy().getId().equals(studyId) ) {
+        if(!findComment.getStudy().getId().equals(study.getId())) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
         }
 
-        if( !findComment.getStudy().getLeader().getId().equals(getMember(email).getId()) &&
-                !findComment.getMember().getId().equals(getMember(email).getId()) ) {
+        if(!findComment.getStudy().getLeader().getId().equals(member.getId()) &&
+                !findComment.getMember().getId().equals(member.getId()) ) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
         }
 
@@ -81,6 +82,22 @@ public class CommentService {
         return repository.findAllByStudyId(studyId, PageRequest.of(page, size, Sort.by("id").descending()));
     }
 
+    /**
+     * 댓글 리스트 조회
+     * @param studyId
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public CommonDto.ResponsePage<List<CommentDto.Response>> getListDto(Study study, Member member, Integer page, Integer size) {
+
+        Page<Comment> commentPages =
+                repository.findAllByStudyId(study.getId(), PageRequest.of(page, size, Sort.by("id").descending()));
+
+        return new CommonDto.ResponsePage<>(
+                dtoMapper.commentsToResponesList(commentPages.getContent(), member.getEmail()),
+                commentPages);
+    }
+
 
     /**
      * 댓글 삭제
@@ -88,46 +105,20 @@ public class CommentService {
      * @param commentId
      * @param email
      */
-    public void delete(String email, Long studyId, Long commentId) {
+    public void delete(Member member, Study study, Long commentId) {
 
         Comment findComment = repository.findById(commentId).orElseThrow( () ->
                         new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_FOUND));
 
-
-        if( !findComment.getStudy().getId().equals(studyId) ) {
+        if( !findComment.getStudy().getId().equals(study.getId()) ) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
         }
 
-        if( !findComment.getStudy().getLeader().getId().equals(getMember(email).getId()) &&
-                !findComment.getMember().getId().equals(getMember(email).getId()) ) {
+        if( !findComment.getStudy().getLeader().getId().equals(member.getId()) &&
+                !findComment.getMember().getId().equals(member.getId()) ) {
             throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
         }
 
         repository.delete(findComment);
-    }
-
-
-
-
-
-
-
-
-    /**
-     * 회원 조회
-     * @param email
-     * @return
-     */
-    public Member getMember(String email) {
-        return memberManager.get(email);
-    }
-
-    /**
-     * 스터디 조회
-     * @param studyId
-     * @return
-     */
-    public Study getStudy(Long studyId) {
-        return studyManager.get(studyId);
     }
 }

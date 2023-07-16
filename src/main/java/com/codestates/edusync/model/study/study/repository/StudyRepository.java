@@ -11,16 +11,16 @@ import java.util.Optional;
 
 public interface StudyRepository extends JpaRepository<Study, Long> {
 
+    //@EntityGraph(attributePaths = {"searchTags", "leaderMember"})
+    Optional<Study> findById(Long studyId);
+
+    //@EntityGraph(attributePaths = "searchTags")
+    Page<Study> findAll(Pageable pageable);
+
     /**
      * 본인이 리더인 스터디 리스트 조회
      * @param memberId
      * @return
      */
     List<Study> findAllByLeader(Member member);
-
-    //@EntityGraph(attributePaths = {"searchTags", "leaderMember"})
-    Optional<Study> findById(Long studyId);
-
-    //@EntityGraph(attributePaths = "searchTags")
-    Page<Study> findAll(Pageable pageable);
 }

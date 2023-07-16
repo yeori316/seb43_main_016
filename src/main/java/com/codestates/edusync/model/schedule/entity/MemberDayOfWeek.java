@@ -1,6 +1,5 @@
-package com.codestates.edusync.model.schedule.memberSchedule.entity;
+package com.codestates.edusync.model.schedule.entity;
 
-import com.codestates.edusync.model.schedule.common.entity.DayOfWeek;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

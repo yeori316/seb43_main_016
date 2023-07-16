@@ -1,8 +1,8 @@
 package com.codestates.edusync.model.member.entity;
 
 import com.codestates.edusync.model.common.entity.AuditEntity;
-import com.codestates.edusync.model.schedule.memberSchedule.entity.MemberSchedule;
-import com.codestates.edusync.model.schedule.studySchedule.entity.ScheduleRef;
+import com.codestates.edusync.model.schedule.entity.MemberSchedule;
+import com.codestates.edusync.model.schedule.entity.ScheduleRef;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;

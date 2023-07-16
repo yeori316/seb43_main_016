@@ -1,4 +1,4 @@
-package com.codestates.edusync.model.schedule.common.dto;
+package com.codestates.edusync.model.schedule.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -22,6 +22,7 @@ public class ScheduleDto {
     public static class Post {
         @NotNull
         private String title;
+
         private String description;
 
         @NotNull
@@ -39,6 +40,8 @@ public class ScheduleDto {
         private LocalTime endTime;
 
         private String color;
+
+        private List<Integer> dayOfWeek;
     }
 
     @AllArgsConstructor
@@ -46,6 +49,7 @@ public class ScheduleDto {
     @Getter
     public static class Patch {
         private String title;
+
         private String description;
 
         @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -61,6 +65,8 @@ public class ScheduleDto {
         private LocalTime endTime;
 
         private String color;
+
+        private List<Integer> dayOfWeek;
     }
 
     @AllArgsConstructor
@@ -68,8 +74,8 @@ public class ScheduleDto {
     @Getter
     @Setter
     public static class Response {
-        private Long id;
         private String title;
+
         private String description;
 
         @JsonFormat(pattern = "yyyy-MM-dd")
@@ -85,6 +91,8 @@ public class ScheduleDto {
         private LocalTime endTime;
 
         private String color;
+
+        private List<Integer> dayOfWeek;
     }
 
     @AllArgsConstructor

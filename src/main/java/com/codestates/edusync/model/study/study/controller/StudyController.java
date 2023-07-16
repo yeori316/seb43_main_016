@@ -1,7 +1,6 @@
 package com.codestates.edusync.model.study.study.controller;
 
 import com.codestates.edusync.model.common.dto.CommonDto;
-import com.codestates.edusync.model.common.utils.UriCreator;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -10,7 +9,7 @@ import com.codestates.edusync.model.study.study.service.StudyService;
 import com.codestates.edusync.model.study.tag.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +51,9 @@ public class StudyController {
                 tagService.getList(postDto.getTags())
         );
 
-        URI uri = UriCreator.createUri("/study", service.create(study).getId());
+        service.create(study);
 
-        return ResponseEntity.created(uri).build();
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     /**
@@ -69,7 +68,7 @@ public class StudyController {
                                         @Positive @PathVariable("study-id") Long studyId,
                                         @Valid @RequestBody StudyDto.Patch patchDto) {
 
-        service.update( // TODO 스터디 수정 시 태그 수정 어떻게 할지....
+        service.update(
                 mapper.studyPatchToStudy(patchDto, studyId, tagService.getList(patchDto.getTags())),
                 memberService.get(authentication.getName()).getEmail()
         );
@@ -117,6 +116,27 @@ public class StudyController {
     }
 
     /**
+     * 스터디 리더 수정
+     * @param authentication
+     * @param studyId
+     * @param patchLeader
+     * @return
+     */
+    @PatchMapping("/{study-id}/leader")
+    public ResponseEntity<String> patchLeader(Authentication authentication,
+                                              @PathVariable("study-id") @Positive Long studyId,
+                                              @RequestBody StudyDto.PatchLeader patchLeaderDto) {
+
+        service.updateLeader(
+                studyId,
+                memberService.get(authentication.getName()).getEmail(),
+                patchLeaderDto.getNickName()
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * 스터디 조회
      * @param authentication
      * @param studyId
@@ -131,17 +151,12 @@ public class StudyController {
 //        byte[] decodedBytes = decoder.decode(decode.getBytes());
 //        long id = Long.valueOf(new String(decodedBytes));
 
-        String email = memberService.get(authentication.getName()).getEmail();
-        Study study = service.get(studyId);
-
-        StudyDto.Response response =
-                mapper.studyToResponse(
-                        study,
-                        service.getStudyMemberCount(studyId),
-                        study.getLeader().getEmail().equals(email)
-                );
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                service.getDto(
+                        studyId,
+                        authentication.getName()
+                )
+        );
     }
 
     /**
@@ -152,16 +167,56 @@ public class StudyController {
      */
     @GetMapping("/list")
     public ResponseEntity<CommonDto.ResponsePage<List<StudyDto.Summary>>> getList(
-            @RequestParam("page") @Positive Integer page,
-            @RequestParam("size") @Positive Integer size,
+            @RequestParam("p") @Positive Integer page,
+            @RequestParam("s") @Positive Integer size,
             @RequestParam(value = "sort", required = false) String sort){
 
-        Page<Study> studyPage = service.getList(page-1, size, sort);
+        return ResponseEntity.ok(
+                service.getListDto(page-1, size, sort)
+        );
+    }
 
-        List<StudyDto.Summary> responseList =
-                mapper.studyListToResponseList(studyPage.getContent());
+    /**
+     * 리더로 운영 중인 스터디 리스트 조회
+     * @param authentication
+     * @return
+     */
+    @GetMapping("/leader/list")
+    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> getLeaderList(
+            Authentication authentication) {
 
-        return ResponseEntity.ok(new CommonDto.ResponsePage<>(responseList, studyPage));
+        return ResponseEntity.ok(
+                service.getLeaderStudyListDto(authentication.getName())
+        );
+    }
+
+    /**
+     * 가입 신청된 | 가입된 스터디 리스트 조회
+     * @param authentication
+     * @return
+     */
+    @GetMapping("/join/list")
+    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> getJoinList(
+            Authentication authentication,
+            @RequestParam("m") Boolean isMember) {
+
+        return ResponseEntity.ok(
+                service.getJoinListDto(authentication.getName(), isMember)
+        );
+    }
+
+    /**
+     * 태그 스터디 검색
+     * @param tag
+     * @return
+     */
+    @GetMapping("/search")
+    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> get(
+            @RequestParam("t") String tag) {
+
+        return ResponseEntity.ok(
+                tagService.search(tag)
+        );
     }
 
     /**
