@@ -12,11 +12,12 @@
 
 ## Refactoring 진행
 1. DB 정규화
-2. 클린 코딩
+2. Git Action AWS 자동 배포
 3. AWS S3 이미지 저장
 4. URL 쿼리 스트링 난독화
-5. 테스트 코드 작성
-6. 성능 부하 테스트
+5. 클린 코딩
+6. 테스트 코드 작성
+7. 성능 부하 테스트
 <br>
 
 ## Refactoring 멤버
@@ -218,7 +219,6 @@
 
 ## <a href="https://documenter.getpostman.com/view/25534184/2s93eU3EHc">API 명세서</a>
 
-
 <br>
 
 ## 디렉토리 구조
@@ -260,11 +260,10 @@
 
 #### Backend
 ```
-$ cd server
 // 시작
-$ ./run_app_log.sh
+$ ./start.sh
 // 종료
-$ ./stop8080.sh
+$ ./stop.sh
 ```
 
 #### Frontend
