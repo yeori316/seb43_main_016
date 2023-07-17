@@ -4,6 +4,7 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
+import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyDtoMapper;
 import com.codestates.edusync.model.study.tag.entity.Tag;
@@ -43,14 +44,14 @@ public class TagService {
         return tags.stream().map(this::create).collect(Collectors.toList());
     }
 
-    public CommonDto.ResponseList<List<StudyDto.Summary>> search(String value) {
+    public StudyPageDto.ResponseList<List<StudyDto.Summary>> search(String value) {
 
         Tag tag = get(value);
         if (tag == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND);
 
         List<TagRef> tagList = tag.getTagRefs();
 
-        return new CommonDto.ResponseList<>(
+        return new StudyPageDto.ResponseList<>(
                 studyDtoMapper.studyListToResponseList(
                         tagList.stream().map(TagRef::getStudy).collect(Collectors.toList())
                 )

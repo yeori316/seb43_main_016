@@ -22,7 +22,7 @@ import static javax.persistence.CascadeType.*;
 @Table
 public class Study extends AuditEntity {
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 50, nullable = false, unique = true)
     private String studyName;
 
     @Column

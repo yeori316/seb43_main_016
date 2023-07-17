@@ -5,11 +5,11 @@ import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.schedule.dto.ScheduleDto;
-import com.codestates.edusync.model.schedule.mapper.ScheduleDtoMapper;
 import com.codestates.edusync.model.schedule.entity.MemberSchedule;
-import com.codestates.edusync.model.schedule.repository.MemberScheduleRepository;
 import com.codestates.edusync.model.schedule.entity.ScheduleRef;
 import com.codestates.edusync.model.schedule.entity.StudySchedule;
+import com.codestates.edusync.model.schedule.mapper.ScheduleDtoMapper;
+import com.codestates.edusync.model.schedule.repository.MemberScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -111,7 +111,7 @@ public class MemberScheduleService {
      * @return
      */
     //@Transactional(readOnly = true)
-    public List<ScheduleDto.Response> getListDto(String email) {
+    public ScheduleDto.ResponseList<List<ScheduleDto.Response>> getListDto(String email) {
 
         Member member = memberService.get(email);
 
@@ -122,7 +122,7 @@ public class MemberScheduleService {
         scheduleDtoList.addAll(dtoMapper.memberSchedulesToResponseList(repository.findAllByMember(member)));
         scheduleDtoList.addAll(dtoMapper.studySchedulesToResponseList(studyScheduleList));
 
-        return scheduleDtoList;
+        return new ScheduleDto.ResponseList<>(scheduleDtoList);
     }
 
     /**

@@ -181,6 +181,7 @@ public class MemberService {
      */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
+
         Optional<Member> optionalMember = repository.findByNickName(nickName);
 
         Member findMember = optionalMember.orElseThrow(() ->
@@ -233,40 +234,6 @@ public class MemberService {
     }
 
     /**
-     * 회원 탈퇴(소프트 삭제)
-     * @param email String
-     */
-    public void delete(String email) {
-        Member findMember = get(email);
-        findMember.setStatus(Member.Status.QUIT);
-        repository.save(findMember);
-    }
-
-    /**
-     * 휴먼 회원 해제
-     * @param email String
-     * @param password String
-     */
-    public void updateStatus(String email, String password){
-        // 회원 인지 확인
-        Optional<Member> optionalMember = repository.findByEmail(email);
-
-        Member findMember = optionalMember.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", email)));
-
-        if (!passwordEncoder.matches(password, findMember.getPassword())) {
-            throw new BusinessLogicException(ExceptionCode.MEMBER_PASSWORD_ERROR);
-        } else {
-            if (findMember.getStatus().equals(Member.Status.SLEEP)) {
-                findMember.setStatus(Member.Status.ACTIVE);
-                repository.save(findMember);
-            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
-            }
-        }
-    }
-
-    /**
      * 패스워드 인증
      * @param password String
      * @param email String
@@ -305,5 +272,41 @@ public class MemberService {
         response.put("provider", provider);
 
         return response;
+    }
+
+    /**
+     * 휴먼 회원 해제
+     * @param email String
+     * @param password String
+     */
+    public void updateStatus(String email, String password){
+        // 회원 인지 확인
+        Optional<Member> optionalMember = repository.findByEmail(email);
+
+        Member findMember = optionalMember.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", email)));
+
+        if (!passwordEncoder.matches(password, findMember.getPassword())) {
+            throw new BusinessLogicException(ExceptionCode.MEMBER_PASSWORD_ERROR);
+        } else {
+            if (findMember.getStatus().equals(Member.Status.ACTIVE)) {
+                throw new BusinessLogicException(ExceptionCode.MEMBER_ALREADY_ACTIVE);
+            } else if (findMember.getStatus().equals(Member.Status.SLEEP)) {
+                findMember.setStatus(Member.Status.ACTIVE);
+                repository.save(findMember);
+            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
+                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
+            }
+        }
+    }
+
+    /**
+     * 회원 탈퇴(소프트 삭제)
+     * @param email String
+     */
+    public void delete(String email) {
+        Member findMember = get(email);
+        findMember.setStatus(Member.Status.QUIT);
+        repository.save(findMember);
     }
 }

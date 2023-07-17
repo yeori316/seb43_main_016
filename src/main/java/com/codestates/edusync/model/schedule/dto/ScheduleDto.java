@@ -9,9 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.YearMonth;
 import java.util.List;
 
 public class ScheduleDto {
@@ -99,7 +97,7 @@ public class ScheduleDto {
     @NoArgsConstructor
     @Getter
     @Setter
-    public static class ResponseList {
-        private List<Response> ResponseList;
+    public static class ResponseList<T> {
+        private T schedule;
     }
 }

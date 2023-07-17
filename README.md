@@ -223,63 +223,32 @@
 
 ## 디렉토리 구조
 ```bash
-├── README.md
+├── .github/workflows
+├── gradle/wrapper
+├── scripts/
 ├── .gitignore
+├── EduSync_Manual.pdf
 ├── LICENSE
-├── client : 프론트엔드 디렉토리
-│   ├── public
-│   ├── src
-│   │   ├── apis : 서버 통신을 담당하는 함수들을 별도로 관리
-│   │   ├── assets
-│   │   ├── compoenets : 기능 단위 컴포넌트
-│   │   ├── hooks : recoil을 활용한 전역 상태 관리
-│   │   ├── mocks : msw 제어
-│   │   ├── pages : 최종 렌더링 페이지 관리
-│   │   ├── recoil : 전역 상태 관리
-│   │   ├── App.css
-│   │   ├── App.tsx
-│   │   ├── GlobalStyle.css
-│   │   ├── ckeditor.d.ts
-│   │   ├── index.css
-│   │   ├── main.tsx
-│   │   └── vite-env.d.ts
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   └── vite.config.ts
-└── server : 백엔드 디렉토리
-    ├── edusync
-        ├── gradle/wrapper
-        └── src
-            ├── docs.asciidoc
-            ├── main
-            │   ├── java/com/codestates/edusync
-            │   │   ├── config
-            │   │   ├── exception
-            │   │   ├── filter
-            │   │   ├── handler
-            │   │   ├── model
-            │   │   ├── security/auth
-            │   │   └── EdusyncApplication.java
-            │   └── resources
-            │       ├── db/migration
-            │       ├── application-server.yml
-            │       └── application.yml
-            ├── test/java/com/codestates/edusync
-            │       ├── config
-            │       ├── member
-            │       ├── model/study/studygroup
-            │       └── EdusyncApplicationTests.java
-            ├── .gitignore
-            ├── background_run_app.sh
-            ├── build.gradle
-            ├── gradlew
-            ├── gradlew.bat
-            ├── run_app.sh
-            ├── settings.gradle
-            └── stop8080.sh
+├── README.md
+├── appspec.yml
+├── build.gradle
+├── gradlew
+├── gradlew.bat
+├── settings.gradle
+├── start.sh
+├── stop.sh
+└── src
+     ├── main/java/com/codestates/edusync
+     │    ├── config
+     │    ├── exception
+     │    ├── filter
+     │    ├── handler
+     │    ├── model
+     │    ├── security/auth
+     │    └── EdusyncApplication.java
+     └── test/java/com/codestates/edusync
+          └── EdusyncApplicationTests.java
+
 ```
 
 <br>

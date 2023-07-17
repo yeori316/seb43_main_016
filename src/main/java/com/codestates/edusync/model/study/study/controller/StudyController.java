@@ -3,6 +3,7 @@ package com.codestates.edusync.model.study.study.controller;
 import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
+import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
 import com.codestates.edusync.model.study.study.service.StudyService;
@@ -104,15 +105,16 @@ public class StudyController {
      * @return
      */
     @PatchMapping("/{study-id}/status")
-    public ResponseEntity<String> patchStatus(Authentication authentication,
-                                              @PathVariable("study-id") @Positive Long studyId) {
-
-        service.updateStatus(
-                studyId,
-                memberService.get(authentication.getName()).getEmail()
+    public ResponseEntity<StudyDto.ResponseStatus> patchStatus(Authentication authentication,
+                                                               @PathVariable("study-id") @Positive Long studyId) {
+        return ResponseEntity.ok(
+                mapper.studyStatus(
+                        service.updateStatus(
+                                studyId,
+                                memberService.get(authentication.getName()).getEmail()
+                        )
+                )
         );
-
-        return ResponseEntity.ok().build();
     }
 
     /**
@@ -126,7 +128,6 @@ public class StudyController {
     public ResponseEntity<String> patchLeader(Authentication authentication,
                                               @PathVariable("study-id") @Positive Long studyId,
                                               @RequestBody StudyDto.PatchLeader patchLeaderDto) {
-
         service.updateLeader(
                 studyId,
                 memberService.get(authentication.getName()).getEmail(),
@@ -166,13 +167,13 @@ public class StudyController {
      * @return
      */
     @GetMapping("/list")
-    public ResponseEntity<CommonDto.ResponsePage<List<StudyDto.Summary>>> getList(
+    public ResponseEntity<StudyPageDto.ResponsePage<List<StudyDto.Summary>>> getList(
             @RequestParam("p") @Positive Integer page,
             @RequestParam("s") @Positive Integer size,
             @RequestParam(value = "sort", required = false) String sort){
 
         return ResponseEntity.ok(
-                service.getListDto(page-1, size, sort)
+                service.getPageDto(page-1, size, sort)
         );
     }
 
@@ -182,7 +183,7 @@ public class StudyController {
      * @return
      */
     @GetMapping("/leader/list")
-    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> getLeaderList(
+    public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> getLeaderList(
             Authentication authentication) {
 
         return ResponseEntity.ok(
@@ -196,7 +197,7 @@ public class StudyController {
      * @return
      */
     @GetMapping("/join/list")
-    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> getJoinList(
+    public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> getJoinList(
             Authentication authentication,
             @RequestParam("m") Boolean isMember) {
 
@@ -211,7 +212,7 @@ public class StudyController {
      * @return
      */
     @GetMapping("/search")
-    public ResponseEntity<CommonDto.ResponseList<List<StudyDto.Summary>>> get(
+    public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> get(
             @RequestParam("t") String tag) {
 
         return ResponseEntity.ok(

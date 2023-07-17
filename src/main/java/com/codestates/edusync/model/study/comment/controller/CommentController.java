@@ -1,8 +1,8 @@
 package com.codestates.edusync.model.study.comment.controller;
 
-import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.comment.dto.CommentDto;
+import com.codestates.edusync.model.study.comment.dto.CommentPageDto;
 import com.codestates.edusync.model.study.comment.mapper.CommentMapper;
 import com.codestates.edusync.model.study.comment.service.CommentService;
 import com.codestates.edusync.model.study.study.service.StudyService;
@@ -76,7 +76,7 @@ public class CommentController {
      * @return
      */
     @GetMapping("/{study-id}")
-    public ResponseEntity<CommonDto.ResponsePage<List<CommentDto.Response>>> getList(
+    public ResponseEntity<CommentPageDto.ResponsePage<List<CommentDto.Response>>> getList(
             Authentication authentication,
             @PathVariable("study-id") @Positive Long studyId,
             @RequestParam("page") @Positive Integer page,
@@ -87,7 +87,8 @@ public class CommentController {
                         studyService.get(studyId),
                         memberService.get(authentication.getName()),
                         page-1,
-                        size)
+                        size
+                )
         );
     }
 

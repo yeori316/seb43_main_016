@@ -3,9 +3,7 @@ package com.codestates.edusync.model.study.studyjoin.service;
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.entity.Study;
-import com.codestates.edusync.model.study.study.service.StudyService;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -22,18 +19,13 @@ import java.util.Optional;
 @Service
 public class StudyJoinService {
     private final StudyJoinRepository repository;
-    private final MemberService memberService;
-    private final StudyService studyService;
 
     /**
      * 스터디 가입 신청
-     * @param studyId
-     * @param email
+     * @param study
+     * @param member
      */
-    public void create(Long studyId, String email) {
-
-        Member member = memberService.get(email);
-        Study study = studyService.get(studyId);
+    public void create(Study study, Member member) {
 
         if (Boolean.FALSE.equals(study.getIsRecruited())) {
             throw new BusinessLogicException(ExceptionCode.STUDYGROUP_RECRUITED_NOT_MODIFIED);
@@ -59,14 +51,12 @@ public class StudyJoinService {
 
     /**
      * 스터디 가입 신청 취소
-     * @param studyId
-     * @param email
+     * @param study
+     * @param member
      */
-    public void delete(Long studyId, String email) {
+    public void delete(Study study, Member member) {
 
-        Member member = memberService.get(email);
-
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(studyId, member.getId());
+        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), member.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
@@ -75,14 +65,12 @@ public class StudyJoinService {
 
     /**
      * 스터디 탈퇴
-     * @param studyId
-     * @param email
+     * @param study
+     * @param member
      */
-    public void deleteJoin(Long studyId, String email) {
+    public void deleteJoin(Study study, Member member) {
 
-        Member member = memberService.get(email);
-
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(studyId, member.getId());
+        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(study.getId(), member.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_NOT_FOUND);
 
@@ -92,20 +80,17 @@ public class StudyJoinService {
 
     /**
      * 스터디 가입 승인
-     * @param studyId
-     * @param nickName
-     * @param email
+     * @param study
+     * @param leader
+     * @param newMember
      */
-    public void update(Long studyId, String email, String nickName) {
+    public void update(Study study, Member leader, Member newMember) {
 
-        memberService.get(email);
-        Member newMember = memberService.getNickName(nickName);
-
-        if (!studyService.get(studyId).getLeader().getEmail().equals(email)) {
+        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(studyId, newMember.getId());
+        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
@@ -115,20 +100,17 @@ public class StudyJoinService {
 
     /**
      * 스터디 가입 거부
-     * @param studyId
-     * @param nickName
-     * @param email
+     * @param study
+     * @param leader
+     * @param newMember
      */
-    public void reject(Long studyId, String email, String nickName) {
+    public void reject(Study study, Member leader, Member newMember) {
 
-        memberService.get(email);
-        Member newMember = memberService.getNickName(nickName);
-
-        if (!studyService.get(studyId).getLeader().getEmail().equals(email)) {
+        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(studyId, newMember.getId());
+        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
 
@@ -137,20 +119,17 @@ public class StudyJoinService {
 
     /**
      * 스터디 멤버 강퇴
-     * @param studyId
-     * @param nickName
-     * @param email
+     * @param study
+     * @param leader
+     * @param member
      */
-    public void kick(Long studyId, String email, String nickName) {
+    public void kick(Study study, Member leader, Member member) {
 
-        memberService.get(email);
-        Member newMember = memberService.getNickName(nickName);
-
-        if (!studyService.get(studyId).getLeader().getEmail().equals(email)) {
+        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
         }
 
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(studyId, newMember.getId());
+        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(study.getId(), member.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND);
 

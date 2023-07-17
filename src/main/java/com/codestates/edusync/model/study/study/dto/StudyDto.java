@@ -101,6 +101,14 @@ public class StudyDto {
         private String nickName;
     }
 
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class ResponseStatus {
+        private Boolean recruited;
+    }
+
     /**
      * 스터디 조회
      */

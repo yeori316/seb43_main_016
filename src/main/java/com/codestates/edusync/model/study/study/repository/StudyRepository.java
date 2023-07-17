@@ -11,10 +11,10 @@ import java.util.Optional;
 
 public interface StudyRepository extends JpaRepository<Study, Long> {
 
-    //@EntityGraph(attributePaths = {"searchTags", "leaderMember"})
     Optional<Study> findById(Long studyId);
 
-    //@EntityGraph(attributePaths = "searchTags")
+    Optional<Study> findByStudyName(String studyName);
+
     Page<Study> findAll(Pageable pageable);
 
     /**

@@ -173,4 +173,15 @@ public interface StudyMapper {
             return tagRef;
         }).collect(Collectors.toList());
     }
+
+    /**
+     * 스터디 상태 수정 시
+     * @param recruited
+     * @return
+     */
+    default StudyDto.ResponseStatus studyStatus(Boolean recruited) {
+        StudyDto.ResponseStatus status = new StudyDto.ResponseStatus();
+        status.setRecruited(recruited);
+        return status;
+    }
 }

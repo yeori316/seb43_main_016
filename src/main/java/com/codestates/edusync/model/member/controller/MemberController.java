@@ -32,7 +32,7 @@ public class MemberController {
      * @param postDto MemberPostDto
      * @return String
      */
-    @PostMapping // TODO 패스워드 규칙 적용 필요
+    @PostMapping
     public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
         service.create(mapper.memberPostToMember(postDto));
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -110,12 +110,15 @@ public class MemberController {
      * @return
      */
     @GetMapping("/{nickName}")
-    public ResponseEntity<MemberDto.MemberResponse> get(@PathVariable String nickName) {
+    public ResponseEntity<MemberDto.MemberResponse> get(Authentication authentication,
+                                                        @PathVariable String nickName) {
 
 //        String decode = URLDecoder.decode(studyId, "UTF-8");
 //        Base64.Decoder decoder = Base64.getDecoder();
 //        byte[] decodedBytes = decoder.decode(decode.getBytes());
 //        long id = Long.valueOf(new String(decodedBytes));
+
+        service.get(authentication.getName());
 
         MemberDto.MemberResponse memberResponseDto =
                 mapper.memberToMemberResponse(service.getNickName(nickName));
@@ -137,8 +140,6 @@ public class MemberController {
 
         return ResponseEntity.ok(service.getStudyMembers(studyId, authentication.getName(), isMember));
     }
-
-
 
 
     /**

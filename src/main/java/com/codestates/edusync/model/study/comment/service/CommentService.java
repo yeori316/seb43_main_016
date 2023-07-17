@@ -1,15 +1,13 @@
 package com.codestates.edusync.model.study.comment.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
-import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.comment.dto.CommentDto;
+import com.codestates.edusync.model.study.comment.dto.CommentPageDto;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.comment.mapper.CommentDtoMapper;
 import com.codestates.edusync.model.study.comment.repository.CommentRepository;
 import com.codestates.edusync.model.study.study.entity.Study;
-import com.codestates.edusync.model.study.study.service.StudyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -71,29 +69,18 @@ public class CommentService {
         return repository.save(findComment);
     }
 
-
     /**
      * 댓글 리스트 조회
      * @param studyId
      * @return
      */
     @Transactional(readOnly = true)
-    public Page<Comment> getList(Long studyId, Integer page, Integer size) {
-        return repository.findAllByStudyId(studyId, PageRequest.of(page, size, Sort.by("id").descending()));
-    }
-
-    /**
-     * 댓글 리스트 조회
-     * @param studyId
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public CommonDto.ResponsePage<List<CommentDto.Response>> getListDto(Study study, Member member, Integer page, Integer size) {
+    public CommentPageDto.ResponsePage<List<CommentDto.Response>> getListDto(Study study, Member member, Integer page, Integer size) {
 
         Page<Comment> commentPages =
                 repository.findAllByStudyId(study.getId(), PageRequest.of(page, size, Sort.by("id").descending()));
 
-        return new CommonDto.ResponsePage<>(
+        return new CommentPageDto.ResponsePage<>(
                 dtoMapper.commentsToResponesList(commentPages.getContent(), member.getEmail()),
                 commentPages);
     }

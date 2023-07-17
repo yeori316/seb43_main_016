@@ -84,7 +84,7 @@ public class MemberScheduleController {
      * @return
      */
     @GetMapping("list")
-    public ResponseEntity<List<ScheduleDto.Response>> getList(Authentication authentication) {
+    public ResponseEntity<ScheduleDto.ResponseList<List<ScheduleDto.Response>>> getList(Authentication authentication) {
 
         return ResponseEntity.ok(
                 service.getListDto(

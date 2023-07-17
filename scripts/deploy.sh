@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUILD_JAR=$(ls /home/ubuntu/edusync/build/libs/edusync-0.0.1-SNAPSHOT-plain.jar)
+BUILD_JAR=$(ls /home/ubuntu/edusync/build/libs/edusync_refac.jar)
 JAR_NAME=$(basename $BUILD_JAR)
 
 echo "> #############################################################################">> /home/ubuntu/edusync/deploy.log

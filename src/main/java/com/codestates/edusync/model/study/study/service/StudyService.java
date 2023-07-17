@@ -7,6 +7,7 @@ import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
+import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyDtoMapper;
 import com.codestates.edusync.model.study.study.repository.StudyRepository;
@@ -45,6 +46,10 @@ public class StudyService {
      * @return Study
      */
     public void create(Study study) {
+
+        Optional<Study> optionalStudy = repository.findByStudyName(study.getStudyName());
+        if (optionalStudy.isPresent()) throw new BusinessLogicException(ExceptionCode.STUDY_NAME_EXISTS);
+
         repository.save(study);
     }
 
@@ -109,7 +114,7 @@ public class StudyService {
      * @param studyId
      * @return
      */
-    public void updateStatus(Long studyId, String email) {
+    public Boolean updateStatus(Long studyId, String email) {
 
         Study findStudy = repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
@@ -119,7 +124,7 @@ public class StudyService {
         }
 
         findStudy.setIsRecruited(!findStudy.getIsRecruited());
-        repository.save(findStudy);
+        return repository.save(findStudy).getIsRecruited();
     }
 
     /**
@@ -189,7 +194,7 @@ public class StudyService {
      * @return
      */
     @Transactional(readOnly = true)
-    public CommonDto.ResponsePage<List<StudyDto.Summary>> getListDto(Integer page, Integer size, String sort) {
+    public StudyPageDto.ResponsePage<List<StudyDto.Summary>> getPageDto(Integer page, Integer size, String sort) {
 
         Page<Study> studyPage = repository.findAll(
                 PageRequest.of(page, size, Sort.by(SortOrder.getString(sort)).descending())
@@ -198,7 +203,7 @@ public class StudyService {
         List<StudyDto.Summary> responseList =
                 dtoMapper.studyListToResponseList(studyPage.getContent());
 
-        return new CommonDto.ResponsePage<>(responseList, studyPage);
+        return new StudyPageDto.ResponsePage<>(responseList, studyPage);
     }
 
     /**
@@ -207,9 +212,9 @@ public class StudyService {
      * @return
      */
     @Transactional(readOnly = true)
-    public CommonDto.ResponseList<List<StudyDto.Summary>> getLeaderStudyListDto(String email) {
+    public StudyPageDto.ResponseList<List<StudyDto.Summary>> getLeaderStudyListDto(String email) {
 
-        return new CommonDto.ResponseList<>(
+        return new StudyPageDto.ResponseList<>(
                 dtoMapper.studyListToResponseList(
                         repository.findAllByLeader(memberService.get(email)))
         );
@@ -221,7 +226,7 @@ public class StudyService {
      * @return
      */
     @Transactional(readOnly = true)
-    public CommonDto.ResponseList<List<StudyDto.Summary>> getJoinListDto(String email, Boolean isMember) {
+    public StudyPageDto.ResponseList<List<StudyDto.Summary>> getJoinListDto(String email, Boolean isMember) {
 
         List<Study> studyList;
 
@@ -237,7 +242,7 @@ public class StudyService {
                     .collect(Collectors.toList());
         }
 
-        return new CommonDto.ResponseList<>(dtoMapper.studyListToResponseList(studyList));
+        return new StudyPageDto.ResponseList<>(dtoMapper.studyListToResponseList(studyList));
     }
 
 

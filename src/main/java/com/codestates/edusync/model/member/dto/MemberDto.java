@@ -22,7 +22,7 @@ public class MemberDto {
         private String email;
 
         @NotBlank(message = "비밀번호는 공백이 아니어야 합니다.")
-        @Pattern(regexp = "/^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,25}$/g.",
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
                 message = "비밀번호는 8~25자리의 영문 대소문자, 숫자, 특수문자 조합이어야 합니다.")
         private String password;
 
@@ -45,6 +45,8 @@ public class MemberDto {
     @Validated
     public static class PatchPassword {
         @NotBlank(message = "비밀번호는 공백이 아니어야 합니다.")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
+                message = "비밀번호는 8~25자리의 영문 대소문자, 숫자, 특수문자 조합이어야 합니다.")
         private String password;
     }
 
