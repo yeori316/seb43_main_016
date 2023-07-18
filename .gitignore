@@ -3,19 +3,17 @@
 
 
 # IntelliJ #
-!.github/*
-!edusync/gradle/*
 build
-edusync/**/resources
 .idea
 .gradle
+src/main/resources
 
 ### Java ###
 # Compiled class file
 *.class
+*.yml
 !appspec.yml
 !bootstrap.yml
-*.yml
 
 # Log file
 *.log
