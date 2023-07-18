@@ -16,8 +16,6 @@ build
 !appspec.yml
 !bootstrap.yml
 
-!application-server.yml
-
 # Log file
 *.log
 
