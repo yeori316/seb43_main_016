@@ -27,4 +27,4 @@ fi
 
 DEPLOY_JAR=$DEPLOY_PATH$JAR_NAME
 echo "> DEPLOY_JAR 배포"    >> /home/ubuntu/edusync/deploy.log
-sudo nohup java -jar $DEPLOY_JAR --spring.profiles.active=tmp >> /home/ubuntu/edusync/deploy.log 2>/home/ubuntu/edusync/deploy_err.log &
+sudo nohup java -jar $DEPLOY_JAR --spring.profiles.active=server >> /home/ubuntu/edusync/deploy.log 2>/home/ubuntu/edusync/deploy_err.log &
