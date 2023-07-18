@@ -16,7 +16,9 @@ src/main/resources
 *.class
 *.yml
 
+!gradle.yml
 !appspec.yml
+!bootstrap.yml
 
 # Log file
 *.log
