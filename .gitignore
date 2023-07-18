@@ -7,7 +7,8 @@ build
 .idea
 .gradle
 src/main/resources
-!src/main/resources/bootstrap.yml
+!src/**/bootstrap.yml
+!.github/**/gradle.yml
 
 ### Java ###
 # Compiled class file
@@ -15,8 +16,6 @@ src/main/resources
 *.yml
 
 !appspec.yml
-!bootstrap.yml
-!gradle.yml
 
 # Log file
 *.log
