@@ -98,8 +98,8 @@ jwt:
 cloud:
   aws:
     credentials:
-      access-key: ${s3.access.key}
-      secret-key: ${s3.secret.key}
+      access-key: ${S3.ACCESS.KEY}
+      secret-key: ${S3.SECRET.KEY}
     s3:
       bucket: edusync.test
     region:
