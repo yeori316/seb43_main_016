@@ -1,6 +1,0 @@
-aws:
-  paramstore:
-    enabled: true
-    prefix: /edusync
-    name: refac
-    profile-separator: _

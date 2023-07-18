@@ -15,6 +15,7 @@ build
 !gradle.yml
 !appspec.yml
 !bootstrap.yml
+!application-prod.yml
 
 # Log file
 *.log
