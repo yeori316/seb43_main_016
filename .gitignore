@@ -6,10 +6,6 @@
 build
 .idea
 .gradle
-#src/main/resources
-!src/**/bootstrap.yml
-!.github/**/gradle.yml
-!edusync/src/main/resources/bootstrap.yml
 
 ### Java ###
 # Compiled class file
