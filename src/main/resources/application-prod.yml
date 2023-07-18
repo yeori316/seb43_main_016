@@ -3,7 +3,7 @@ spring:
     import: 'aws-parameterstore:'
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url : ${database.url}
+    url: ${database.url}
     username: ${database.user}
     password: ${database.pass}
   redis:
