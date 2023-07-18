@@ -2,10 +2,10 @@ package com.codestates.edusync.config;
 
 import com.codestates.edusync.filter.JwtAuthenticationFilter;
 import com.codestates.edusync.filter.JwtVerificationFilter;
+import com.codestates.edusync.handler.*;
 import com.codestates.edusync.security.auth.jwt.JwtTokenizer;
 import com.codestates.edusync.security.auth.token.TokenService;
 import com.codestates.edusync.security.auth.utils.CustomAuthorityUtils;
-import com.codestates.edusync.handler.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,6 +52,8 @@ public class SecurityConfig {
                 .and()
                 .apply(new CustomFilterConfigurer())
                 .and()
+//                .authorizeRequests(authorize -> authorize
+//                        .anyRequest().permitAll())
                 .authorizeHttpRequests(authorize -> authorize
                                 .anyRequest().permitAll()
                 )
@@ -70,6 +72,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        //configuration.setAllowedOrigins(Arrays.asList("http://edusync-refector.s3-website-us-east-1.amazonaws.com", "http://localhost:5173", "http://localhost:4173"));
         configuration.setAllowedOriginPatterns(Arrays.asList("http://edusync-refector.s3-website-us-east-1.amazonaws.com", "http://localhost:5173", "http://localhost:4173"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Refresh", "content-type"));
