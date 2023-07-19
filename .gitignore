@@ -10,12 +10,16 @@ build
 ### Java ###
 # Compiled class file
 *.class
-*.yml
+#*.yml
 
-!gradle.yml
-!appspec.yml
-!bootstrap.yml
-!application-prod.yml
+#!gradle.yml
+#!appspec.yml
+#!bootstrap.yml
+#!application.yml
+#!application-prod.yml
+
+application-local.yml
+application-tmp.yml
 
 # Log file
 *.log
