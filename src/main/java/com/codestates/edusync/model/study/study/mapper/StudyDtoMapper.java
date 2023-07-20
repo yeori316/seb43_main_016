@@ -24,7 +24,7 @@ public interface StudyDtoMapper {
      * @param isLeader
      * @return
      */
-    default StudyDto.Response studyToResponse(Study study, int studyMemberCnt, boolean isLeader) {
+    default StudyDto.Response studyToResponse(Study study, int studyMemberCnt, boolean isLeader, boolean isLikes) {
         StudyDto.Response response = new StudyDto.Response();
 
         response.setStudyName(study.getStudyName());
@@ -43,6 +43,9 @@ public interface StudyDtoMapper {
         response.setTags(study.getTagRefs().stream().map(e -> e.getTag().getTagValue()).collect(Collectors.toList()));
         response.setLeaderNickName(study.getLeader().getNickName());
         response.setIsLeader(isLeader);
+        response.setViews(study.getViews());
+        response.setLikes((long) study.getLikesList().size());
+        response.setIsLikes(isLikes);
 
         return response;
     }
@@ -87,6 +90,8 @@ public interface StudyDtoMapper {
         studySummary.setImage(study.getImage());
         studySummary.setTitle(study.getStudyName());
         studySummary.setTags(this.tagRefsToTagList(study.getTagRefs()));
+        studySummary.setViews(study.getViews());
+        studySummary.setLikes((long) study.getLikesList().size());
 
         return studySummary;
     }

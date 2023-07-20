@@ -28,7 +28,7 @@ public class StudyJoinService {
     public void create(Study study, Member member) {
 
         if (Boolean.FALSE.equals(study.getIsRecruited())) {
-            throw new BusinessLogicException(ExceptionCode.STUDYGROUP_RECRUITED_NOT_MODIFIED);
+            throw new BusinessLogicException(ExceptionCode.STUDY_RECRUITED_NOT_MODIFIED);
         }
 
         // 가입 이력 확인
@@ -36,9 +36,9 @@ public class StudyJoinService {
 
         if (findJoin.isPresent()) {
             if (Boolean.TRUE.equals(findJoin.get().getIsApproved())) {
-                throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_EXISTS);
+                throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_EXISTS);
             } else {
-                throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_EXISTS);
+                throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_EXISTS);
             }
         }
 
@@ -58,7 +58,7 @@ public class StudyJoinService {
 
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), member.getId());
 
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
+        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_NOT_FOUND);
 
         repository.delete(findJoin.get());
     }
@@ -70,9 +70,11 @@ public class StudyJoinService {
      */
     public void deleteJoin(Study study, Member member) {
 
+        if (study.getLeader() == member) throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
+
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(study.getId(), member.getId());
 
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_NOT_FOUND);
+        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_NOT_FOUND);
 
         repository.delete(findJoin.get());
     }
@@ -92,7 +94,7 @@ public class StudyJoinService {
 
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
 
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
+        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_NOT_FOUND);
 
         findJoin.get().setIsApproved(true);
         repository.save(findJoin.get());
@@ -112,7 +114,7 @@ public class StudyJoinService {
 
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
 
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_JOIN_CANDIDATE_NOT_FOUND);
+        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_NOT_FOUND);
 
         repository.delete(findJoin.get());
     }

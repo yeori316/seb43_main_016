@@ -47,10 +47,10 @@ public class MemberScheduleService {
 
         MemberSchedule findSchedule =
                 repository.findById(scheduleId)
-                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND));
+                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND));
 
         if (!findSchedule.getMember().getEmail().equals(member.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND);
+            throw new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND);
         }
 
         Optional.ofNullable(schedule.getTitle()).ifPresent(findSchedule::setTitle);
@@ -85,10 +85,10 @@ public class MemberScheduleService {
 
         MemberSchedule findSchedule =
                 repository.findById(scheduleId)
-                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND));
+                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND));
 
         if (!findSchedule.getMember().getEmail().equals(member.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.TIME_SCHEDULE_NOT_FOUND);
+            throw new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND);
         }
 
         return findSchedule;

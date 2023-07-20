@@ -1,7 +1,7 @@
 package com.codestates.edusync.model.study.study.controller;
 
-import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.study.likes.service.LikesService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.util.List;
 
 @Transactional
@@ -35,6 +34,7 @@ public class StudyController {
     private final StudyService service;
     private final MemberService memberService;
     private final TagService tagService;
+    private final LikesService likesService;
 
     /**
      * 스터디 등록
@@ -43,8 +43,8 @@ public class StudyController {
      * @return URI
      */
     @PostMapping
-    public ResponseEntity<URI> post(Authentication authentication,
-                                    @Valid @RequestBody StudyDto.Post postDto) {
+    public ResponseEntity<String> post(Authentication authentication,
+                                       @Valid @RequestBody StudyDto.Post postDto) {
 
         Study study = mapper.studyPostToStudy(
                 postDto,
@@ -203,6 +203,22 @@ public class StudyController {
 
         return ResponseEntity.ok(
                 service.getJoinListDto(authentication.getName(), isMember)
+        );
+    }
+
+    /**
+     * 스터디 좋아요
+     * @param authentication
+     * @param studyId
+     * @return
+     */
+    @PatchMapping("/{study-id}/likes")
+    public Long patchLikes(Authentication authentication,
+                          @Positive @PathVariable("study-id") Long studyId) {
+
+        return likesService.patch(
+                memberService.get(authentication.getName()),
+                service.get(studyId)
         );
     }
 

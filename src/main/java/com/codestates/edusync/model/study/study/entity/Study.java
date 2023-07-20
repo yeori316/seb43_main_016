@@ -4,6 +4,7 @@ import com.codestates.edusync.model.common.entity.AuditEntity;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.schedule.entity.StudySchedule;
 import com.codestates.edusync.model.study.comment.entity.Comment;
+import com.codestates.edusync.model.study.likes.entity.Likes;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.tag.entity.TagRef;
 import lombok.Getter;
@@ -43,6 +44,9 @@ public class Study extends AuditEntity {
     @Column
     private Boolean isRecruited;
 
+    @Column
+    private Long views;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")
@@ -61,4 +65,7 @@ public class Study extends AuditEntity {
 
     @OneToMany(mappedBy = "study", cascade = ALL)
     private List<TagRef> tagRefs;
+
+    @OneToMany(mappedBy = "study", cascade = REMOVE)
+    private List<Likes> likesList;
 }

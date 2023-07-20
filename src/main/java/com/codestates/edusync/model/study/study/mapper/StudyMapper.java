@@ -41,6 +41,7 @@ public interface StudyMapper {
         study.setStudyJoins(this.joinMapping(member, study));
         study.setStudySchedule(this.studyScheduleMapping(studyPostDto, member));
         study.setTagRefs(this.tagMapping(study, tagList));
+        study.setViews(0L);
 
         return study;
     }

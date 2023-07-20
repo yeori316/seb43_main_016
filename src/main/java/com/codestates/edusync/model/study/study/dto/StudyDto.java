@@ -121,9 +121,7 @@ public class StudyDto {
         private String image;
         private Integer memberMin;
         private Integer memberMax;
-
         private Integer memberCnt;
-
         private String platform;
         private String introduction;
         private Boolean isRecruited;
@@ -145,6 +143,9 @@ public class StudyDto {
         private List<String> tags;
         private String leaderNickName;
         private Boolean isLeader;
+        private Long views;
+        private Long likes;
+        private Boolean isLikes;
     }
 
     /**
@@ -156,8 +157,10 @@ public class StudyDto {
     @Setter
     public static class Summary {
         private Long id;
-        private String image;
         private String title;
+        private String image;
         private List<String> tags;
+        private Long views;
+        private Long likes;
     }
 }

@@ -1,6 +1,7 @@
-package com.codestates.edusync.model.study.tag.entity;
+package com.codestates.edusync.model.study.likes.entity;
 
 import com.codestates.edusync.model.common.entity.BaseEntity;
+import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.study.study.entity.Study;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,12 +14,12 @@ import javax.persistence.*;
 @Setter
 @Entity
 @Table
-public class TagRef extends BaseEntity {
+public class Likes extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "memberId")
+    private Member member;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studyId")
     private Study study;
-
-    @ManyToOne
-    @JoinColumn(name = "tagId")
-    private Tag tag;
 }

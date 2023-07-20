@@ -2,10 +2,11 @@ package com.codestates.edusync.model.study.study.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.study.likes.entity.Likes;
+import com.codestates.edusync.model.study.likes.repository.LikesRepository;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
@@ -39,6 +40,7 @@ public class StudyService {
     private final TagRefService tagRefService;
     private final AwsS3Service awsS3Service;
     private final StudyDtoMapper dtoMapper;
+    private final LikesRepository likesRepository;
 
     /**
      * 스터디 등록
@@ -62,7 +64,7 @@ public class StudyService {
     public void update(Study study, String email) {
 
         Study findStudy = repository.findById(study.getId())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
@@ -97,7 +99,7 @@ public class StudyService {
     public void updateImage(Long studyId, String email, MultipartFile image) {
 
         Study findStudy = repository.findById(studyId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
@@ -117,7 +119,7 @@ public class StudyService {
     public Boolean updateStatus(Long studyId, String email) {
 
         Study findStudy = repository.findById(studyId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
@@ -138,7 +140,7 @@ public class StudyService {
         memberService.get(email);
 
         Study findStudy = repository.findById(studyId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
@@ -147,7 +149,7 @@ public class StudyService {
         Member newLeader = memberService.getNickName(newLeaderNickName);
 
         joinRepository.findByStudyIdAndMemberIdAndIsApprovedTrue(studyId, newLeader.getId())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_PRIVILEGES_MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
 
         findStudy.setLeader(newLeader);
 
@@ -163,7 +165,7 @@ public class StudyService {
     public Study get(Long studyId) {
 
         return repository.findById(studyId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
     }
 
     /**
@@ -176,13 +178,19 @@ public class StudyService {
     public StudyDto.Response getDto(Long studyId, String email) {
 
         // 멤버 확인용
-        memberService.get(email);
+        Member member = memberService.get(email);
         Study study = get(studyId);
 
+        study.setViews(study.getViews() + 1);
+        repository.save(study);
+
+        Optional<Likes> likes = likesRepository.findByMemberAndStudy(member, study);
+        
         return dtoMapper.studyToResponse(
                 study,
                 joinRepository.countByStudyAndIsApprovedIsTrue(study),
-                study.getLeader().getEmail().equals(email)
+                study.getLeader().getEmail().equals(email),
+                likes.isPresent()
         );
     }
 
@@ -254,7 +262,7 @@ public class StudyService {
     public void delete(Long studyId, String email) {
 
         Study findStudy = repository.findById(studyId)
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         if (!findStudy.getLeader().getEmail().equals(email)) {
             throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);

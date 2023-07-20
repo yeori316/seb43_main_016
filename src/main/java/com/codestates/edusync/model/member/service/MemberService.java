@@ -210,7 +210,7 @@ public class MemberService {
         get(email);
         Study study =
                 studyRepository.findById(studyId)
-                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND));
+                        .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         List<StudyJoin> studyJoinList;
 

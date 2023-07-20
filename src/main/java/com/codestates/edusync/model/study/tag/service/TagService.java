@@ -2,10 +2,8 @@ package com.codestates.edusync.model.study.tag.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.dto.CommonDto;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.dto.StudyPageDto;
-import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyDtoMapper;
 import com.codestates.edusync.model.study.tag.entity.Tag;
 import com.codestates.edusync.model.study.tag.entity.TagRef;
@@ -47,7 +45,7 @@ public class TagService {
     public StudyPageDto.ResponseList<List<StudyDto.Summary>> search(String value) {
 
         Tag tag = get(value);
-        if (tag == null) throw new BusinessLogicException(ExceptionCode.STUDYGROUP_NOT_FOUND);
+        if (tag == null) throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
 
         List<TagRef> tagList = tag.getTagRefs();
 
