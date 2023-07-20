@@ -53,15 +53,15 @@ public class CommentService {
     public Comment update(Member member, Study study, Comment comment) {
 
         Comment findComment = repository.findById(comment.getId()).orElseThrow( () ->
-                        new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_FOUND));
+                        new BusinessLogicException(COMMENT_NOT_FOUND));
 
         if(!findComment.getStudy().getId().equals(study.getId())) {
-            throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
+            throw new BusinessLogicException(COMMENT_NOT_FOUND);
         }
 
         if(!findComment.getStudy().getLeader().getId().equals(member.getId()) &&
                 !findComment.getMember().getId().equals(member.getId()) ) {
-            throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
+            throw new BusinessLogicException(INVALID_PERMISSION);
         }
 
         Optional.ofNullable(comment.getContent()).ifPresent(findComment::setContent);
@@ -95,15 +95,15 @@ public class CommentService {
     public void delete(Member member, Study study, Long commentId) {
 
         Comment findComment = repository.findById(commentId).orElseThrow( () ->
-                        new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_FOUND));
+                        new BusinessLogicException(COMMENT_NOT_FOUND));
 
         if( !findComment.getStudy().getId().equals(study.getId()) ) {
-            throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_MATCHED);
+            throw new BusinessLogicException(COMMENT_NOT_FOUND);
         }
 
         if( !findComment.getStudy().getLeader().getId().equals(member.getId()) &&
                 !findComment.getMember().getId().equals(member.getId()) ) {
-            throw new BusinessLogicException(STUDYGROUP_POST_COMMENT_NOT_ALLOWED);
+            throw new BusinessLogicException(INVALID_PERMISSION);
         }
 
         repository.delete(findComment);

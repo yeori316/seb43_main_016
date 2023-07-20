@@ -1,7 +1,7 @@
 package com.codestates.edusync.exception.advice;
 
 import com.codestates.edusync.exception.BusinessLogicException;
-import com.codestates.edusync.exception.ErrorResponse;
+import com.codestates.edusync.exception.response.ErrorResponse;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -110,7 +110,7 @@ public class GlobalException {
     }
 
     @ExceptionHandler
-    public ResponseEntity handleBusinessLogicException(BusinessLogicException e) {
+    public ResponseEntity<ErrorResponse> handleBusinessLogicException(BusinessLogicException e) {
         final ErrorResponse response = ErrorResponse.of(e.getExceptionCode());
 
         return new ResponseEntity<>(
