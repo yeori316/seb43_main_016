@@ -1,5 +1,8 @@
 package com.codestates.edusync.model.member.controller;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.mapper.MemberMapper;
 import com.codestates.edusync.model.member.service.MemberService;
@@ -14,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import java.net.URI;
 import java.util.Map;
 
 @Slf4j
@@ -26,6 +27,7 @@ import java.util.Map;
 public class MemberController {
     private final MemberMapper mapper;
     private final MemberService service;
+    private final ObfuscationUtil obfuscationUtil;
 
     /**
      * 회원 가입
@@ -47,7 +49,10 @@ public class MemberController {
     @PatchMapping("/name")
     public ResponseEntity<String> patchNickName(Authentication authentication,
                                                 @Valid @RequestBody MemberDto.PatchNickName patchNickNameDto) {
-        service.updateNickName(mapper.memberPatchNickNameToMember(patchNickNameDto), authentication.getName());
+        service.updateNickName(
+                mapper.memberPatchNickNameToMember(patchNickNameDto),
+                authentication.getName()
+        );
         return ResponseEntity.ok().build();
     }
 
@@ -60,28 +65,34 @@ public class MemberController {
     @PatchMapping("/pass")
     public ResponseEntity<String> patchPass(Authentication authentication,
                                             @Valid @RequestBody MemberDto.PatchPassword patchPassDto) {
-        service.updatePassword(mapper.memberPatchPasswordToMember(patchPassDto), authentication.getName());
+        service.updatePassword(
+                mapper.memberPatchPasswordToMember(patchPassDto),
+                authentication.getName()
+        );
         return ResponseEntity.ok().build();
     }
 
     /**
      * 자기소개 수정
-     * @param authentication 토큰
-     * @param patchAboutMeDto memberPatchAboutMeDto
-     * @return URI
+     * @param authentication Authentication
+     * @param patchAboutMeDto MemberPatchAboutMeDto
+     * @return String
      */
     @PatchMapping("/aboutme")
     public ResponseEntity<String> patchAboutMe(Authentication authentication,
                                                @Valid @RequestBody MemberDto.PatchAboutMe patchAboutMeDto) {
-        service.updateAboutMe(mapper.memberPatchAboutMeToMember(patchAboutMeDto), authentication.getName());
+        service.updateAboutMe(
+                mapper.memberPatchAboutMeToMember(patchAboutMeDto),
+                authentication.getName()
+        );
         return ResponseEntity.ok().build();
     }
 
     /**
      * 이미지 수정
-     * @param authentication 토큰
-     * @param image 이미지
-     * @return URI
+     * @param authentication Authentication
+     * @param image Image
+     * @return String
      */
     @PatchMapping("/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
@@ -91,65 +102,74 @@ public class MemberController {
     }
 
     /**
-     * 본인 정보 조회
-     * @param authentication 토큰
-     * @return Response
+     * 마이페이지 조회
+     * @param authentication Authentication
+     * @return MemberDtoMyInfo
      */
     @GetMapping
     public ResponseEntity<MemberDto.MyInfo> getMyInfo(Authentication authentication) {
 
         MemberDto.MyInfo myInfoDto =
-                mapper.memberToMemberInfoResponse(service.get(authentication.getName()));
-
+                mapper.memberToMemberInfoResponse(
+                        service.get(authentication.getName())
+                );
         return new ResponseEntity<>(myInfoDto, HttpStatus.OK);
     }
 
     /**
      * 멤버 조회
-     * @param nickName
-     * @return
+     * @param authentication Authentication
+     * @param enNickName Encoded NickName
+     * @return MemberDtoResponse
      */
-    @GetMapping("/{nickName}")
+    @GetMapping("/{enNickName}")
     public ResponseEntity<MemberDto.MemberResponse> get(Authentication authentication,
-                                                        @PathVariable String nickName) {
-
-//        String decode = URLDecoder.decode(studyId, "UTF-8");
-//        Base64.Decoder decoder = Base64.getDecoder();
-//        byte[] decodedBytes = decoder.decode(decode.getBytes());
-//        long id = Long.valueOf(new String(decodedBytes));
-
-        service.get(authentication.getName());
-
-        MemberDto.MemberResponse memberResponseDto =
-                mapper.memberToMemberResponse(service.getNickName(nickName));
-
-        return new ResponseEntity<>(memberResponseDto, HttpStatus.OK);
+                                                        @PathVariable String enNickName) {
+        MemberDto.MemberResponse response =
+                mapper.memberToMemberResponse(
+                        service.getNickName(
+                                getDecoded(enNickName),
+                                authentication.getName()
+                        )
+                );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 
     /**
      * 스터디 가입 신청자 | 스터디 멤버 리스트 조회
-     * @param studyId
-     * @param authentication
-     * @return
+     * @param authentication Authentication
+     * @param enStudyId Encoded StudyId
+     * @param enIsMember Encoded IsMember
+     * @return MemberDtoResponse
      */
-    @GetMapping("/list") // URI 수정
+    @GetMapping("/list")
     public ResponseEntity<MemberDto.MembersResponse> getWaitStudyMembers(Authentication authentication,
-                                                                         @RequestParam("s") @Positive Long studyId,
-                                                                         @RequestParam("m") Boolean isMember) {
+                                                                         @RequestParam("s") String enStudyId,
+                                                                         @RequestParam("m") String enIsMember) {
 
-        return ResponseEntity.ok(service.getStudyMembers(studyId, authentication.getName(), isMember));
+        long studyId = Long.parseLong(getDecoded(enStudyId));
+
+        if (studyId < 1) {
+            throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
+        }
+
+        return ResponseEntity.ok(
+                service.getStudyMembers(
+                        studyId,
+                        authentication.getName(),
+                        Boolean.parseBoolean(getDecoded(enIsMember))
+                )
+        );
     }
-
 
     /**
      * 패스워드 인증
-     * @param authentication 토큰
-     * @param checkPassword requestBody
-     * @return response
+     * @param authentication Authentication
+     * @param checkPassDto MemberPatchPassDto
+     * @return String
      */
     @PostMapping("/pass-auth")
-    public ResponseEntity<Object> checkPassword(Authentication authentication,
+    public ResponseEntity<String> checkPassword(Authentication authentication,
                                                 @RequestBody MemberDto.PatchPassword checkPassDto) {
         return new ResponseEntity<>(
                 service.checkPassword(authentication.getName(), checkPassDto.getPassword()) ?
@@ -158,8 +178,8 @@ public class MemberController {
 
     /**
      * 회원 가입 구분
-     * @param authentication 토큰
-     * @return response
+     * @param authentication Authentication
+     * @return String
      */
     @GetMapping("/provider")
     public ResponseEntity<Map<String, String>> getProvider(Authentication authentication){
@@ -168,23 +188,32 @@ public class MemberController {
 
     /**
      * 휴먼 회원 해제
-     * @param loginDto loginDto
-     * @return URI
+     * @param loginDto LoginDto
+     * @return String
      */
     @PatchMapping("/reactive")
-    public ResponseEntity<URI> patchStatus(@RequestBody LoginDto loginDto){
+    public ResponseEntity<String> patchStatus(@RequestBody LoginDto loginDto){
         service.updateStatus(loginDto.getEmail(),loginDto.getPassword());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
      * 회원 탈퇴(소프트 삭제)
-     * @param authentication 토큰
-     * @return URI
+     * @param authentication Authentication
+     * @return String
      */
     @DeleteMapping
-    public ResponseEntity<URI> delete(Authentication authentication) {
+    public ResponseEntity<String> delete(Authentication authentication) {
         service.delete(authentication.getName());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Base64 DecodeUtil
+     * @param message Encoded Message
+     * @return String
+     */
+    public String getDecoded(String message) {
+        return obfuscationUtil.getDecoded(message);
     }
 }
