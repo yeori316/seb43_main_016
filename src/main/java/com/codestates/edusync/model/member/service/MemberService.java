@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -314,6 +315,7 @@ public class MemberService {
     public void delete(String email) {
         Member findMember = get(email);
         findMember.setStatus(Member.Status.QUIT);
+        findMember.setDeletedAt(LocalDateTime.now());
         repository.save(findMember);
     }
 
