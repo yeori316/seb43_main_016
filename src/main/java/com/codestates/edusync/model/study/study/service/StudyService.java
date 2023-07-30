@@ -5,6 +5,8 @@ import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.service.AwsS3Service;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.schedule.entity.DayOfWeek;
+import com.codestates.edusync.model.schedule.entity.StudySchedule;
 import com.codestates.edusync.model.study.likes.entity.Likes;
 import com.codestates.edusync.model.study.likes.repository.LikesRepository;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
@@ -76,11 +78,28 @@ public class StudyService {
         Optional.ofNullable(study.getPlatform()).ifPresent(findStudy::setPlatform);
         Optional.ofNullable(study.getIntroduction()).ifPresent(findStudy::setIntroduction);
         Optional.ofNullable(study.getStudySchedule()).ifPresent(e -> {
-            findStudy.setStudySchedule(e);
-            if (e.getStudyDayOfWeek() != null) {
-                findStudy.getStudySchedule().setStudyDayOfWeek(e.getStudyDayOfWeek());
-            }
+            StudySchedule findStudySchedule = findStudy.getStudySchedule();
+
+            Optional.ofNullable(e.getTitle()).ifPresent(findStudySchedule::setTitle);
+            Optional.ofNullable(e.getDescription()).ifPresent(findStudySchedule::setDescription);
+            Optional.ofNullable(e.getStartDate()).ifPresent(findStudySchedule::setStartDate);
+            Optional.ofNullable(e.getEndDate()).ifPresent(findStudySchedule::setEndDate);
+            Optional.ofNullable(e.getStartTime()).ifPresent(findStudySchedule::setStartTime);
+            Optional.ofNullable(e.getEndTime()).ifPresent(findStudySchedule::setEndTime);
+            Optional.ofNullable(e.getColor()).ifPresent(findStudySchedule::setColor);
+            Optional.ofNullable(e.getStudyDayOfWeek()).ifPresent(el -> {
+                DayOfWeek dayOfWeek = findStudy.getStudySchedule().getStudyDayOfWeek();
+
+                Optional.ofNullable(el.getSunday()).ifPresent(dayOfWeek::setSunday);
+                Optional.ofNullable(el.getMonday()).ifPresent(dayOfWeek::setMonday);
+                Optional.ofNullable(el.getTuesday()).ifPresent(dayOfWeek::setTuesday);
+                Optional.ofNullable(el.getWednesday()).ifPresent(dayOfWeek::setWednesday);
+                Optional.ofNullable(el.getThursday()).ifPresent(dayOfWeek::setThursday);
+                Optional.ofNullable(el.getFriday()).ifPresent(dayOfWeek::setFriday);
+                Optional.ofNullable(el.getSaturday()).ifPresent(dayOfWeek::setSaturday);
+            });
         });
+
         Optional.ofNullable(study.getTagRefs()).ifPresent(e -> {
             tagRefService.delete(findStudy);
             findStudy.setTagRefs(e);

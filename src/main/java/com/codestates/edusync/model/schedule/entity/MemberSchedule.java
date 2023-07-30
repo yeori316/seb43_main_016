@@ -15,8 +15,6 @@ import static javax.persistence.CascadeType.*;
 @Entity
 @Table
 public class MemberSchedule extends Schedule {
-    @Column
-    private String color;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")

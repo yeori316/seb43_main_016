@@ -38,7 +38,7 @@ public interface ScheduleDtoMapper {
         response.setStartDate(schedule.getStartDate());
         response.setEndDate(schedule.getEndDate());
         response.setStartTime(schedule.getStartTime());
-        response.setEndTime(schedule.getEndTime());
+        response.setColor(schedule.getColor());
         response.setDayOfWeek(this.responseDayOfWeek(schedule.getStudyDayOfWeek()));
 
         return response;

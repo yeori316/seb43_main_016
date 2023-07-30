@@ -55,6 +55,8 @@ public class StudyDto {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm", timezone = "Asia/Seoul")
         private LocalTime endTime;
 
+        private String color;
+
         private List<String> tags;
     }
 
@@ -89,6 +91,8 @@ public class StudyDto {
 
         @DateTimeFormat(pattern = "HH:mm")
         private LocalTime endTime;
+
+        private String color;
 
         private List<String> tags;
     }

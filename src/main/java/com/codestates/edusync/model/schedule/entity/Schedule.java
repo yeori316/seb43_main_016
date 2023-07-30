@@ -35,4 +35,7 @@ public class Schedule extends BaseEntity {
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
+
+    @Column
+    private String color;
 }

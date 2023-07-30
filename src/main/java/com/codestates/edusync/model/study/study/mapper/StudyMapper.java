@@ -31,7 +31,7 @@ public interface StudyMapper {
         Study study = new Study();
 
         study.setStudyName(studyPostDto.getStudyName());
-        study.setImage("https://ibb.co/mtFLvN4");
+        study.setImage("https://i.ibb.co/K7zMNKW/icons8-team-y-Tw-Xp-LO5-HAA-unsplash.jpg");
         study.setMemberMin(studyPostDto.getMemberMin());
         study.setMemberMax(studyPostDto.getMemberMax());
         study.setPlatform(studyPostDto.getPlatform());
@@ -101,6 +101,7 @@ public interface StudyMapper {
         schedule.setEndDate(studyPostDto.getEndDate());
         schedule.setStartTime(studyPostDto.getStartTime());
         schedule.setEndTime(studyPostDto.getEndTime());
+        schedule.setColor(studyPostDto.getColor());
         schedule.setStudyDayOfWeek(this.dayOfWeekMapping(studyPostDto.getDayOfWeek()));
         schedule.setScheduleRefs(this.scheduleRefMapping(member, schedule));
 
@@ -121,6 +122,7 @@ public interface StudyMapper {
         schedule.setEndDate(studyPatchDto.getEndDate());
         schedule.setStartTime(studyPatchDto.getStartTime());
         schedule.setEndTime(studyPatchDto.getEndTime());
+        schedule.setColor(studyPatchDto.getColor());
         schedule.setStudyDayOfWeek(this.dayOfWeekMapping(studyPatchDto.getDayOfWeek()));
 
         return schedule;
