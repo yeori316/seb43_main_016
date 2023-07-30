@@ -1,5 +1,8 @@
 package com.codestates.edusync.model.study.study.controller;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.likes.service.LikesService;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
@@ -20,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Transactional
@@ -35,6 +37,7 @@ public class StudyController {
     private final MemberService memberService;
     private final TagService tagService;
     private final LikesService likesService;
+    private final ObfuscationUtil obfuscationUtil;
 
     /**
      * 스터디 등록
@@ -66,8 +69,10 @@ public class StudyController {
      */
     @PatchMapping("/{study-id}")
     public ResponseEntity<String> patch(Authentication authentication,
-                                        @Positive @PathVariable("study-id") Long studyId,
+                                        @PathVariable("study-id") String enStudyId,
                                         @Valid @RequestBody StudyDto.Patch patchDto) {
+
+        Long studyId = verifyId(enStudyId);
 
         service.update(
                 mapper.studyPatchToStudy(patchDto, studyId, tagService.getList(patchDto.getTags())),
@@ -86,8 +91,10 @@ public class StudyController {
      */
     @PatchMapping("/{study-id}/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
-                                             @Positive @PathVariable("study-id") Long studyId,
+                                             @PathVariable("study-id") String enStudyId,
                                              @RequestPart(value="image") MultipartFile image) {
+
+        Long studyId = verifyId(enStudyId);
 
         service.updateImage(
                 studyId,
@@ -106,7 +113,10 @@ public class StudyController {
      */
     @PatchMapping("/{study-id}/status")
     public ResponseEntity<StudyDto.ResponseStatus> patchStatus(Authentication authentication,
-                                                               @PathVariable("study-id") @Positive Long studyId) {
+                                                               @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
+
         return ResponseEntity.ok(
                 mapper.studyStatus(
                         service.updateStatus(
@@ -126,8 +136,11 @@ public class StudyController {
      */
     @PatchMapping("/{study-id}/leader")
     public ResponseEntity<String> patchLeader(Authentication authentication,
-                                              @PathVariable("study-id") @Positive Long studyId,
+                                              @PathVariable("study-id") String enStudyId,
                                               @RequestBody StudyDto.PatchLeader patchLeaderDto) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.updateLeader(
                 studyId,
                 memberService.get(authentication.getName()).getEmail(),
@@ -145,12 +158,9 @@ public class StudyController {
      */
     @GetMapping("/{study-id}")
     public ResponseEntity<StudyDto.Response> get(Authentication authentication,
-                                                 @PathVariable("study-id") Long studyId) throws UnsupportedEncodingException {
+                                                 @PathVariable("study-id") String enStudyId) {
 
-//        String decode = URLDecoder.decode(studyId, "UTF-8");
-//        Base64.Decoder decoder = Base64.getDecoder();
-//        byte[] decodedBytes = decoder.decode(decode.getBytes());
-//        long id = Long.valueOf(new String(decodedBytes));
+        Long studyId = verifyId(enStudyId);
 
         return ResponseEntity.ok(
                 service.getDto(
@@ -168,9 +178,12 @@ public class StudyController {
      */
     @GetMapping("/list")
     public ResponseEntity<StudyPageDto.ResponsePage<List<StudyDto.Summary>>> getList(
-            @RequestParam("p") @Positive Integer page,
-            @RequestParam("s") @Positive Integer size,
+            @RequestParam("p") String enPage,
+            @RequestParam("s") String enSize,
             @RequestParam(value = "sort", required = false) String sort){
+
+        Integer page = Integer.parseInt(getDecoded(enPage));
+        Integer size = Integer.parseInt(getDecoded(enSize));
 
         return ResponseEntity.ok(
                 service.getPageDto(page-1, size, sort)
@@ -199,7 +212,9 @@ public class StudyController {
     @GetMapping("/join/list")
     public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> getJoinList(
             Authentication authentication,
-            @RequestParam("m") Boolean isMember) {
+            @RequestParam("m") String enIsMember) {
+
+        Boolean isMember = Boolean.parseBoolean(getDecoded(enIsMember));
 
         return ResponseEntity.ok(
                 service.getJoinListDto(authentication.getName(), isMember)
@@ -214,7 +229,9 @@ public class StudyController {
      */
     @PatchMapping("/{study-id}/likes")
     public Long patchLikes(Authentication authentication,
-                          @Positive @PathVariable("study-id") Long studyId) {
+                          @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
 
         return likesService.patch(
                 memberService.get(authentication.getName()),
@@ -229,7 +246,9 @@ public class StudyController {
      */
     @GetMapping("/search")
     public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> get(
-            @RequestParam("t") String tag) {
+            @RequestParam("t") String enTag) {
+
+        String tag = String.valueOf(getDecoded(enTag));
 
         return ResponseEntity.ok(
                 tagService.search(tag)
@@ -244,7 +263,9 @@ public class StudyController {
      */
     @DeleteMapping("/{study-id}")
     public ResponseEntity<String> delete(Authentication authentication,
-                                         @PathVariable("study-id") @Positive Long studyId) {
+                                         @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
 
         service.delete(
                 studyId,
@@ -252,5 +273,18 @@ public class StudyController {
         );
 
         return ResponseEntity.ok().build();
+    }
+
+    public String getDecoded(String message) {
+        return obfuscationUtil.getDecoded(message);
+    }
+
+    private Long verifyId(String enStudyId) {
+        Long studyId = Long.parseLong(getDecoded(enStudyId));
+
+        if (studyId < 1) {
+            throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
+        }
+        return studyId;
     }
 }

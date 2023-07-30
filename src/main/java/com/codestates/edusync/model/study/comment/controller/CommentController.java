@@ -1,5 +1,8 @@
 package com.codestates.edusync.model.study.comment.controller;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.comment.dto.CommentDto;
 import com.codestates.edusync.model.study.comment.dto.CommentPageDto;
@@ -28,6 +31,7 @@ public class CommentController {
     private final CommentService service;
     private final MemberService memberService;
     private final StudyService studyService;
+    private final ObfuscationUtil obfuscationUtil;
 
     /**
      * 댓글 등록
@@ -37,8 +41,10 @@ public class CommentController {
      */
     @PostMapping("/{study-id}")
     public ResponseEntity<String> post(Authentication authentication,
-                                       @PathVariable("study-id") @Positive Long studyId,
+                                       @PathVariable("study-id") String enStudyId,
                                        @Valid @RequestBody CommentDto.Post postDto) {
+
+        Long studyId = verifyId(enStudyId);
 
         service.create(
                 memberService.get(authentication.getName()),
@@ -58,8 +64,10 @@ public class CommentController {
      */
     @PatchMapping("/{study-id}")
     public ResponseEntity<String> patch(Authentication authentication,
-                                        @PathVariable("study-id") @Positive Long studyId,
+                                        @PathVariable("study-id") String enStudyId,
                                         @Valid @RequestBody CommentDto.Patch patchDto) {
+
+        Long studyId = verifyId(enStudyId);
 
         service.update(
                 memberService.get(authentication.getName()),
@@ -78,9 +86,13 @@ public class CommentController {
     @GetMapping("/{study-id}")
     public ResponseEntity<CommentPageDto.ResponsePage<List<CommentDto.Response>>> getList(
             Authentication authentication,
-            @PathVariable("study-id") @Positive Long studyId,
-            @RequestParam("page") @Positive Integer page,
-            @RequestParam("size") @Positive Integer size) {
+            @PathVariable("study-id") String enStudyId,
+            @RequestParam("p") String enPage,
+            @RequestParam("s") String enSize) {
+
+        Long studyId = verifyId(enStudyId);
+        Integer page = Integer.parseInt(getDecoded(enPage));
+        Integer size = Integer.parseInt(getDecoded(enSize));
 
         return ResponseEntity.ok(
                 service.getListDto(
@@ -100,8 +112,11 @@ public class CommentController {
      */
     @DeleteMapping("/{study-id}/{comment-id}")
     public ResponseEntity<String> delete(Authentication authentication,
-                                         @PathVariable("study-id") @Positive Long studyId,
-                                         @PathVariable("comment-id") @Positive Long commentId) {
+                                         @PathVariable("study-id") String enStudyId,
+                                         @PathVariable("comment-id") String enCommentId) {
+
+        Long studyId = verifyId(enStudyId);
+        Long commentId = verifyId(enCommentId);
 
         service.delete(
                 memberService.get(authentication.getName()),
@@ -110,5 +125,18 @@ public class CommentController {
         );
 
         return ResponseEntity.ok().build();
+    }
+
+    public String getDecoded(String message) {
+        return obfuscationUtil.getDecoded(message);
+    }
+
+    private Long verifyId(String enStudyId) {
+        Long studyId = Long.parseLong(getDecoded(enStudyId));
+
+        if (studyId < 1) {
+            throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
+        }
+        return studyId;
     }
 }

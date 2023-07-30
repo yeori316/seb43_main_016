@@ -14,7 +14,6 @@ public class NickNameCheckUtil {
     public void validated(String nickName) {
         if (nickName != null) {
 
-            // 영어
             Set<String> nickNameNotAllowed = new HashSet<>(List.of(
                     "admin", "address",
                     "calendar", "category", "codestates",

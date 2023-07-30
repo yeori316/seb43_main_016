@@ -1,5 +1,8 @@
 package com.codestates.edusync.model.schedule.controller;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.schedule.dto.ScheduleDto;
 import com.codestates.edusync.model.schedule.mapper.ScheduleMapper;
@@ -25,6 +28,7 @@ public class MemberScheduleController {
     private final ScheduleMapper mapper;
     private final MemberScheduleService service;
     private final MemberService memberService;
+    private final ObfuscationUtil obfuscationUtil;
 
     /**
      * 스케쥴 등록
@@ -52,8 +56,10 @@ public class MemberScheduleController {
      */
     @PatchMapping("/{schedule-id}")
     public ResponseEntity<String> patch(Authentication authentication,
-                                        @PathVariable("schedule-id") @Positive Long scheduleId,
+                                        @PathVariable("schedule-id") String enScheduleId,
                                         @Valid @RequestBody ScheduleDto.Patch patchDto) {
+
+        Long scheduleId = verifyId(enScheduleId);
 
         service.update(
                 scheduleId,
@@ -71,7 +77,10 @@ public class MemberScheduleController {
      */
     @GetMapping("/{schedule-id}")
     public ResponseEntity<ScheduleDto.Response> get(Authentication authentication,
-                                                    @PathVariable("schedule-id") @Positive Long scheduleId) {
+                                                    @PathVariable("schedule-id") String enScheduleId) {
+
+        Long scheduleId = verifyId(enScheduleId);
+
         return ResponseEntity.ok(
                 service.getDto(scheduleId, memberService.get(authentication.getName()))
         );
@@ -103,10 +112,25 @@ public class MemberScheduleController {
      */
     @DeleteMapping("/{schedule-id}")
     public ResponseEntity<String> delete(Authentication authentication,
-                                         @PathVariable("schedule-id") @Positive Long scheduleId) {
+                                         @PathVariable("schedule-id") String enScheduleId) {
+
+        Long scheduleId = verifyId(enScheduleId);
 
         service.delete(scheduleId, memberService.get(authentication.getName()));
 
         return ResponseEntity.ok().build();
+    }
+
+    public String getDecoded(String message) {
+        return obfuscationUtil.getDecoded(message);
+    }
+
+    private Long verifyId(String enScheduleId) {
+        Long scheduleId = Long.parseLong(getDecoded(enScheduleId));
+
+        if (scheduleId < 1) {
+            throw new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND);
+        }
+        return scheduleId;
     }
 }

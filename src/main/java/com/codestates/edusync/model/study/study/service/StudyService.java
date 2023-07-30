@@ -185,7 +185,7 @@ public class StudyService {
         repository.save(study);
 
         Optional<Likes> likes = likesRepository.findByMemberAndStudy(member, study);
-        
+
         return dtoMapper.studyToResponse(
                 study,
                 joinRepository.countByStudyAndIsApprovedIsTrue(study),

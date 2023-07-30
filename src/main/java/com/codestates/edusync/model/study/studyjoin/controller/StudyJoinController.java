@@ -1,5 +1,8 @@
 package com.codestates.edusync.model.study.studyjoin.controller;
 
+import com.codestates.edusync.exception.BusinessLogicException;
+import com.codestates.edusync.exception.ExceptionCode;
+import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.study.study.service.StudyService;
 import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
@@ -24,6 +27,7 @@ public class StudyJoinController {
     private final StudyJoinService service;
     private final MemberService memberService;
     private final StudyService studyService;
+    private final ObfuscationUtil obfuscationUtil;
 
     /**
      * 스터디 가입 신청
@@ -33,7 +37,10 @@ public class StudyJoinController {
      */
     @PostMapping("/{study-id}")
     public ResponseEntity<String> post(Authentication authentication,
-                                       @PathVariable("study-id") @Positive Long studyId) {
+                                       @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.create(
                 studyService.get(studyId),
                 memberService.get(authentication.getName())
@@ -49,7 +56,10 @@ public class StudyJoinController {
      */
     @DeleteMapping("/wait/{study-id}")
     public ResponseEntity<String> delete(Authentication authentication,
-                                         @PathVariable("study-id") @Positive Long studyId) {
+                                         @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.delete(
                 studyService.get(studyId),
                 memberService.get(authentication.getName())
@@ -65,7 +75,10 @@ public class StudyJoinController {
      */
     @DeleteMapping("/{study-id}")
     public ResponseEntity<String> deleteJoin(Authentication authentication,
-                                             @PathVariable("study-id") @Positive Long studyId) {
+                                             @PathVariable("study-id") String enStudyId) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.deleteJoin(
                 studyService.get(studyId),
                 memberService.get(authentication.getName())
@@ -83,8 +96,11 @@ public class StudyJoinController {
      */
     @PatchMapping("/{study-id}/apply")
     public ResponseEntity<String> patch(Authentication authentication,
-                                        @PathVariable("study-id") @Positive Long studyId,
+                                        @PathVariable("study-id") String enStudyId,
                                         @Valid @RequestBody StudyJoinDto.Dto patchDto) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.update(
                 studyService.get(studyId),
                 memberService.get(authentication.getName()),
@@ -102,8 +118,11 @@ public class StudyJoinController {
      */
     @DeleteMapping("/{study-id}/reject")
     public ResponseEntity<String> deleteReject(Authentication authentication,
-                                               @PathVariable("study-id") @Positive Long studyId,
+                                               @PathVariable("study-id") String enStudyId,
                                                @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.reject(
                 studyService.get(studyId),
                 memberService.get(authentication.getName()),
@@ -121,13 +140,29 @@ public class StudyJoinController {
      */
     @DeleteMapping("/{study-id}/kick")
     public ResponseEntity<String> deleteKick(Authentication authentication,
-                                             @PathVariable("study-id") @Positive Long studyId,
+                                             @PathVariable("study-id") String enStudyId,
                                              @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
+
+        Long studyId = verifyId(enStudyId);
+
         service.kick(
                 studyService.get(studyId),
                 memberService.get(authentication.getName()),
                 memberService.getNickName(deleteDto.getNickName())
         );
         return ResponseEntity.ok().build();
+    }
+
+    public String getDecoded(String message) {
+        return obfuscationUtil.getDecoded(message);
+    }
+
+    private Long verifyId(String enStudyId) {
+        Long studyId = Long.parseLong(getDecoded(enStudyId));
+
+        if (studyId < 1) {
+            throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
+        }
+        return studyId;
     }
 }

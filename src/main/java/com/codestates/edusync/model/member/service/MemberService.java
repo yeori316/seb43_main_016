@@ -31,47 +31,40 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class MemberService {
-    private final CustomAuthorityUtils authorityUtils;
-    private final PasswordEncoder passwordEncoder;
     private final MemberRepository repository;
     private final StudyRepository studyRepository;
     private final StudyJoinRepository joinRepository;
     private final AwsS3Service awsS3Service;
+    private final CustomAuthorityUtils authorityUtils;
+    private final PasswordEncoder passwordEncoder;
     private final NickNameCheckUtil nickNameCheckUtil;
     private final MemberDtoMapper dtoMapper;
 
     /**
      * 회원 가입
      * @param member Member
-     * @return Member
      */
     public void create(Member member) {
+
         // 이메일 중복 체크
-        String email = member.getEmail();
-        Optional<Member> optionalMember = repository.findByEmail(email);
+        Optional<Member> optionalMember = repository.findByEmail(member.getEmail());
+
         if (optionalMember.isPresent()) {
             Member findMember = optionalMember.get();
 
             if (findMember.getStatus().equals(Member.Status.ACTIVE)) {
-                throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL, String.format("%s는 이미 가입한 이메일입니다.", email));
+                throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL);
             } else if (findMember.getStatus().equals(Member.Status.SLEEP)) {
-                throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL, String.format("%s는 현재 휴먼 계정입니다.", email));
+                throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_EMAIL);
             } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", email));
+                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
             }
         }
 
-        // 닉네임 중복 체크
-        String nickName = member.getNickName();
-        optionalMember = repository.findByNickName(nickName);
-        if (optionalMember.isPresent())
-            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_NICKNAME, String.format("%s는 이미 사용중인 닉네임입니다.", nickName));
+        nickNameCheck(member);
 
-        // 닉네임 금지어 체크
-        nickNameCheckUtil.validated(nickName);
-
-        // 멤버 추가 로직
-        String encryptedPassword = passwordEncoder.encode(member.getPassword());
+        // 멤버 셋팅
+        String encryptedPassword = passEncoding(member.getPassword());
         member.setPassword(encryptedPassword);
 
         List<String> roles = authorityUtils.createRoles(member.getEmail());
@@ -83,22 +76,14 @@ public class MemberService {
     /**
      * 닉네임 수정
      * @param member Member
-     * @param email String
+     * @param email Email
      */
-    //@Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateNickName(Member member, String email) {
 
         Member findMember = get(email);
 
-        // 닉네임 중복 체크
-        String nickName = member.getNickName();
-        Optional<Member> opMember = repository.findByNickName(nickName);
-        if (opMember.isPresent())
-            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_NICKNAME, String.format("%s는 이미 사용중인 닉네임입니다.", nickName));
-
-        // 닉네임 금지어 체크
-        nickNameCheckUtil.validated(nickName);
-
+        nickNameCheck(member);
 
         Optional.ofNullable(member.getNickName())
                 .ifPresent(name -> {
@@ -113,9 +98,8 @@ public class MemberService {
     /**
      * 패스워드 수정
      * @param member Member
-     * @param email String
+     * @param email Email
      */
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updatePassword(Member member, String email) {
 
         Member findMember = get(email);
@@ -123,7 +107,7 @@ public class MemberService {
         Optional.ofNullable(member.getPassword())
                 .ifPresent(password -> {
                     if (!password.isEmpty()) {
-                        findMember.setPassword(passwordEncoder.encode(password));
+                        findMember.setPassword(passEncoding(password));
                     }
                 });
 
@@ -133,9 +117,8 @@ public class MemberService {
     /**
      * 자기소개 수정
      * @param member Member
-     * @param email String
+     * @param email Email
      */
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateAboutMe(Member member, String email) {
         Member findMember = get(email);
         Optional.ofNullable(member.getAboutMe()).ifPresent(findMember::setAboutMe);
@@ -144,7 +127,7 @@ public class MemberService {
 
     /**
      * 이미지 수정
-     * @param email String
+     * @param email Email
      * @param image Image
      */
     public void updateImage(MultipartFile image, String email) {
@@ -155,7 +138,7 @@ public class MemberService {
 
     /**
      * 회원 조회 - 이메일
-     * @param email String
+     * @param email email
      * @return Member
      */
     @Transactional(readOnly = true)
@@ -181,6 +164,30 @@ public class MemberService {
      */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
+
+        Optional<Member> optionalMember = repository.findByNickName(nickName);
+
+        Member findMember = optionalMember.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", nickName)));
+
+        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
+            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", nickName));
+        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
+            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", nickName));
+        }
+
+        return findMember;
+    }
+
+    /**
+     * 회원 조회 - 닉네임
+     * @param nickName
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public Member getNickName(String nickName, String email) {
+
+        get(email);
 
         Optional<Member> optionalMember = repository.findByNickName(nickName);
 
@@ -309,4 +316,34 @@ public class MemberService {
         findMember.setStatus(Member.Status.QUIT);
         repository.save(findMember);
     }
+
+
+
+
+
+
+
+    /**
+     * 닉네임 체크
+     * @param member Member
+     */
+    public void nickNameCheck(Member member) {
+
+        String nickName = member.getNickName();
+        Optional<Member> opMember = repository.findByNickName(nickName);
+        if (opMember.isPresent())
+            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS_NICKNAME);
+
+        nickNameCheckUtil.validated(nickName);
+    }
+
+    /**
+     * 패스워드 암호화
+     * @param password Password
+     * @return String
+     */
+    public String passEncoding(String password) {
+        return passwordEncoder.encode(password);
+    }
+
 }

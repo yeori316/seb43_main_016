@@ -8,10 +8,10 @@ import java.util.Arrays;
 @AllArgsConstructor
 @Getter
 public enum SortOrder {
-    SORT_BY_ID("recent", "id"),
-    SORT_BY_MODIFIED_AT("modified", "modifiedAt"),
-    SORT_BY_CATEGORY("category", "searchTags.tagKey"),
-    SORT_BY_RECRUITED("status", "isRecruited"),
+    SORT_BY_ID("recent", "id"), // 최근
+    SORT_BY_MODIFIED_AT("modified", "modifiedAt"), // 수정 일자
+    SORT_BY_RECRUITED("status", "isRecruited"), // 모집 상태별
+    SORT_BY_VIEWS("views", "views"), // 조회 순
     ;
 
     private final String order;
