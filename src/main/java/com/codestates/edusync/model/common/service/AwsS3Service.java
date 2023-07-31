@@ -22,6 +22,12 @@ public class AwsS3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    /**
+     * S3 이미지 저장 로직
+     * @param file 이미지 파일
+     * @param bucketPath S3 이미지 저장 Bucket
+     * @return 이미지 저장 주소
+     */
     public String uploadImage(MultipartFile file, String bucketPath) {
         String fileName = createFileName(file.getOriginalFilename());
 
@@ -39,8 +45,8 @@ public class AwsS3Service {
 
     /**
      * S3에 저장할 파일명
-     * @param originalFileName
-     * @return
+     * @param originalFileName 원본 파일명
+     * @return S3에 저장할 파일명
      */
     private String createFileName(String originalFileName) {
         return UUID.randomUUID().toString().concat(getFileExtension(originalFileName));
@@ -48,35 +54,50 @@ public class AwsS3Service {
 
     /**
      * 파일 포맷 유효성 검사
-     * @param fileName
-     * @return
+     * @param fileName file name
+     * @return 파일명
      */
     private String getFileExtension(String fileName) {
+
+        String extension;
+
         try {
-            return fileName.substring(fileName.lastIndexOf("."));
+            extension = fileName.substring(fileName.lastIndexOf("."));
         } catch (StringIndexOutOfBoundsException e) {
             throw new IllegalArgumentException(String.format("잘못된 형식의 파일 (%s) 입니다", fileName));
         }
+
+        if (!extension.equals(".jpg") && !extension.equals(".png")) {
+            throw new IllegalArgumentException(String.format("잘못된 형식의 파일 (%s) 입니다", fileName));
+        }
+
+        return extension;
     }
 
     /**
      * S3에 이미지 업로드
-     * @param inputStream
-     * @param objectMetadata
-     * @param fileName
+     * @param inputStream InputStream
+     * @param objectMetadata Object metadata
+     * @param fileName File name
      */
-    public void uploadFile(InputStream inputStream, ObjectMetadata objectMetadata, String fileName, String bucketPath) {
-        amazonS3.putObject(
+    public void uploadFile(InputStream inputStream,
+                           ObjectMetadata objectMetadata,
+                           String fileName,
+                           String bucketPath) {
+
+        PutObjectRequest putObjectRequest =
                 new PutObjectRequest(bucketPath, fileName, inputStream, objectMetadata)
-                        .withCannedAcl(CannedAccessControlList.PublicRead));
+                        .withCannedAcl(CannedAccessControlList.PublicRead);
+
+        amazonS3.putObject(putObjectRequest);
 
     }
 
     /**
      * 이미지 저장 경로
-     * @param fileName
-     * @param bucketPath
-     * @return
+     * @param fileName 파일명
+     * @param bucketPath S3 저장 Bucket
+     * @return 이미지 저장 경로
      */
     public String getFileUrl(String fileName, String bucketPath) {
         return amazonS3.getUrl(bucketPath, fileName).toString();
