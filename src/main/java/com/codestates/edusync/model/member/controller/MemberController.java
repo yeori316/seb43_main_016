@@ -4,6 +4,7 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.dto.MemberDto;
+import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.mapper.MemberMapper;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.security.auth.dto.LoginDto;
@@ -36,7 +37,9 @@ public class MemberController {
      */
     @PostMapping
     public ResponseEntity<String> post(@Valid @RequestBody MemberDto.Post postDto) {
-        service.create(mapper.memberPostToMember(postDto));
+
+        Member member = mapper.memberPostToMember(postDto);
+        service.create(member);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -49,10 +52,9 @@ public class MemberController {
     @PatchMapping("/name")
     public ResponseEntity<String> patchNickName(Authentication authentication,
                                                 @Valid @RequestBody MemberDto.PatchNickName patchNickNameDto) {
-        service.updateNickName(
-                mapper.memberPatchNickNameToMember(patchNickNameDto),
-                authentication.getName()
-        );
+        Member member = mapper.memberPatchNickNameToMember(patchNickNameDto);
+        String email = authentication.getName();
+        service.updateNickName(member, email);
         return ResponseEntity.ok().build();
     }
 
@@ -65,10 +67,9 @@ public class MemberController {
     @PatchMapping("/pass")
     public ResponseEntity<String> patchPass(Authentication authentication,
                                             @Valid @RequestBody MemberDto.PatchPassword patchPassDto) {
-        service.updatePassword(
-                mapper.memberPatchPasswordToMember(patchPassDto),
-                authentication.getName()
-        );
+        Member member = mapper.memberPatchPasswordToMember(patchPassDto);
+        String email = authentication.getName();
+        service.updatePassword(member, email);
         return ResponseEntity.ok().build();
     }
 
@@ -81,10 +82,9 @@ public class MemberController {
     @PatchMapping("/aboutme")
     public ResponseEntity<String> patchAboutMe(Authentication authentication,
                                                @Valid @RequestBody MemberDto.PatchAboutMe patchAboutMeDto) {
-        service.updateAboutMe(
-                mapper.memberPatchAboutMeToMember(patchAboutMeDto),
-                authentication.getName()
-        );
+        Member member = mapper.memberPatchAboutMeToMember(patchAboutMeDto);
+        String email = authentication.getName();
+        service.updateAboutMe(member, email);
         return ResponseEntity.ok().build();
     }
 
@@ -97,7 +97,8 @@ public class MemberController {
     @PatchMapping("/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
                                              @RequestPart(value="image") MultipartFile image) {
-        service.updateImage(image, authentication.getName());
+        String email = authentication.getName();
+        service.updateImage(image, email);
         return ResponseEntity.ok().build();
     }
 
@@ -109,10 +110,9 @@ public class MemberController {
     @GetMapping
     public ResponseEntity<MemberDto.MyInfo> getMyInfo(Authentication authentication) {
 
-        MemberDto.MyInfo myInfoDto =
-                mapper.memberToMemberInfoResponse(
-                        service.get(authentication.getName())
-                );
+        String email = authentication.getName();
+        Member member = service.get(email);
+        MemberDto.MyInfo myInfoDto = mapper.memberToMemberInfoResponse(member);
         return new ResponseEntity<>(myInfoDto, HttpStatus.OK);
     }
 
@@ -125,13 +125,10 @@ public class MemberController {
     @GetMapping("/{enNickName}")
     public ResponseEntity<MemberDto.MemberResponse> get(Authentication authentication,
                                                         @PathVariable String enNickName) {
-        MemberDto.MemberResponse response =
-                mapper.memberToMemberResponse(
-                        service.getNickName(
-                                getDecoded(enNickName),
-                                authentication.getName()
-                        )
-                );
+        String nickName = getDecoded(enNickName);
+        String email = authentication.getName();
+        Member member = service.getNickName(nickName, email);
+        MemberDto.MemberResponse response = mapper.memberToMemberResponse(member);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -146,20 +143,16 @@ public class MemberController {
     public ResponseEntity<MemberDto.MembersResponse> getWaitStudyMembers(Authentication authentication,
                                                                          @RequestParam("s") String enStudyId,
                                                                          @RequestParam("m") String enIsMember) {
-
         long studyId = Long.parseLong(getDecoded(enStudyId));
 
         if (studyId < 1) {
             throw new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND);
         }
 
-        return ResponseEntity.ok(
-                service.getStudyMembers(
-                        studyId,
-                        authentication.getName(),
-                        Boolean.parseBoolean(getDecoded(enIsMember))
-                )
-        );
+        String email = authentication.getName();
+        Boolean isMember = Boolean.parseBoolean(getDecoded(enIsMember));
+        MemberDto.MembersResponse response = service.getStudyMembers(studyId, email, isMember);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -171,9 +164,10 @@ public class MemberController {
     @PostMapping("/pass-auth")
     public ResponseEntity<String> checkPassword(Authentication authentication,
                                                 @RequestBody MemberDto.PatchPassword checkPassDto) {
-        return new ResponseEntity<>(
-                service.checkPassword(authentication.getName(), checkPassDto.getPassword()) ?
-                        HttpStatus.OK : HttpStatus.UNAUTHORIZED);
+        String email = authentication.getName();
+        String passwd = checkPassDto.getPassword();
+        boolean passCheck = service.checkPassword(email, passwd);
+        return new ResponseEntity<>(passCheck ? HttpStatus.OK : HttpStatus.UNAUTHORIZED);
     }
 
     /**
@@ -183,7 +177,10 @@ public class MemberController {
      */
     @GetMapping("/provider")
     public ResponseEntity<Map<String, String>> getProvider(Authentication authentication){
-        return ResponseEntity.ok(service.getProvider(authentication.getName()));
+
+        String email = authentication.getName();
+        Map<String, String> response = service.getProvider(email);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -193,7 +190,10 @@ public class MemberController {
      */
     @PatchMapping("/reactive")
     public ResponseEntity<String> patchStatus(@RequestBody LoginDto loginDto){
-        service.updateStatus(loginDto.getEmail(),loginDto.getPassword());
+
+        String email = loginDto.getEmail();
+        String passwd = loginDto.getPassword();
+        service.updateStatus(email, passwd);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -204,7 +204,9 @@ public class MemberController {
      */
     @DeleteMapping
     public ResponseEntity<String> delete(Authentication authentication) {
-        service.delete(authentication.getName());
+
+        String email = authentication.getName();
+        service.delete(email);
         return ResponseEntity.ok().build();
     }
 

@@ -2,14 +2,10 @@ package com.codestates.edusync.model.member.mapper;
 
 import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
-import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberMapper {

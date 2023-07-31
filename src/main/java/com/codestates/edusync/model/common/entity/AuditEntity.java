@@ -12,11 +12,12 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditEntity extends BaseEntity {
-    @CreatedDate // Entity 생성시간 자동 저장
+
+    @CreatedDate // Entity 생성 시간 자동 저장
     @Column(nullable = false, updatable = false)
     protected LocalDateTime createdAt;
 
-    @LastModifiedDate // 조회한 Entity의 값을 변경할 때 시간 자동 저장(수정)
+    @LastModifiedDate // 조회한 Entity 의 값을 변경할 때 시간 자동 저장(수정)
     @Column(nullable = false)
     protected LocalDateTime modifiedAt;
 }

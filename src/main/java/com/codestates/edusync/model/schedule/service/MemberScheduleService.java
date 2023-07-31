@@ -5,6 +5,7 @@ import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberService;
 import com.codestates.edusync.model.schedule.dto.ScheduleDto;
+import com.codestates.edusync.model.schedule.entity.MemberDayOfWeek;
 import com.codestates.edusync.model.schedule.entity.MemberSchedule;
 import com.codestates.edusync.model.schedule.entity.ScheduleRef;
 import com.codestates.edusync.model.schedule.entity.StudySchedule;
@@ -31,7 +32,7 @@ public class MemberScheduleService {
 
     /**
      * 스케쥴 등록
-     * @param schedule
+     * @param schedule schedule
      */
     public void create(MemberSchedule schedule) {
         repository.save(schedule);
@@ -39,14 +40,13 @@ public class MemberScheduleService {
 
     /**
      * 스케쥴 수정
-     * @param scheduleId
-     * @param member
-     * @param schedule
+     * @param scheduleId Schedule ID
+     * @param member Member
+     * @param schedule Schedule
      */
     public void update(Long scheduleId, Member member, MemberSchedule schedule) {
 
-        MemberSchedule findSchedule =
-                repository.findById(scheduleId)
+        MemberSchedule findSchedule = repository.findById(scheduleId)
                         .orElseThrow(() -> new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND));
 
         if (!findSchedule.getMember().getEmail().equals(member.getEmail())) {
@@ -61,13 +61,15 @@ public class MemberScheduleService {
         Optional.ofNullable(schedule.getEndTime()).ifPresent(findSchedule::setEndTime);
         Optional.ofNullable(schedule.getColor()).ifPresent(findSchedule::setColor);
         Optional.ofNullable(schedule.getMemberDayOfWeek()).ifPresent(e -> {
-            if (e.getSunday() != null) findSchedule.getMemberDayOfWeek().setSunday(e.getSunday());
-            if (e.getMonday() != null) findSchedule.getMemberDayOfWeek().setMonday(e.getMonday());
-            if (e.getTuesday() != null) findSchedule.getMemberDayOfWeek().setTuesday(e.getTuesday());
-            if (e.getWednesday() != null) findSchedule.getMemberDayOfWeek().setWednesday(e.getWednesday());
-            if (e.getThursday() != null) findSchedule.getMemberDayOfWeek().setThursday(e.getThursday());
-            if (e.getFriday() != null) findSchedule.getMemberDayOfWeek().setFriday(e.getFriday());
-            if (e.getSaturday() != null) findSchedule.getMemberDayOfWeek().setSaturday(e.getSaturday());
+            MemberDayOfWeek memberDayOfWeek = findSchedule.getMemberDayOfWeek();
+
+            Optional.ofNullable(e.getSunday()).ifPresent(memberDayOfWeek::setSunday);
+            Optional.ofNullable(e.getMonday()).ifPresent(memberDayOfWeek::setMonday);
+            Optional.ofNullable(e.getTuesday()).ifPresent(memberDayOfWeek::setTuesday);
+            Optional.ofNullable(e.getWednesday()).ifPresent(memberDayOfWeek::setWednesday);
+            Optional.ofNullable(e.getThursday()).ifPresent(memberDayOfWeek::setThursday);
+            Optional.ofNullable(e.getFriday()).ifPresent(memberDayOfWeek::setFriday);
+            Optional.ofNullable(e.getSaturday()).ifPresent(memberDayOfWeek::setSaturday);
         });
 
         repository.save(findSchedule);
@@ -76,15 +78,14 @@ public class MemberScheduleService {
 
     /**
      * 스케쥴 상세 정보 조회
-     * @param scheduleId
-     * @param member
-     * @return
+     * @param scheduleId Schedule ID
+     * @param member Member
+     * @return Member Schedule
      */
     @Transactional(readOnly = true)
     public MemberSchedule get(Long scheduleId, Member member) {
 
-        MemberSchedule findSchedule =
-                repository.findById(scheduleId)
+        MemberSchedule findSchedule = repository.findById(scheduleId)
                         .orElseThrow(() -> new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND));
 
         if (!findSchedule.getMember().getEmail().equals(member.getEmail())) {
@@ -96,44 +97,49 @@ public class MemberScheduleService {
 
     /**
      * 스케쥴 상세 정보 조회
-     * @param scheduleId
-     * @param member
-     * @return
+     * @param scheduleId Schedule ID
+     * @param member Member
+     * @return Schedule
      */
     @Transactional(readOnly = true)
     public ScheduleDto.Response getDto(Long scheduleId, Member member) {
-        return dtoMapper.scheduleToResponse(get(scheduleId, member));
+
+        MemberSchedule findSchedule = get(scheduleId, member);
+        return dtoMapper.scheduleToResponse(findSchedule);
     }
 
     /**
      * 스케쥴 리스트 조회
-     * @param member
-     * @return
+     * @param email email
+     * @return Schedule List
      */
-    //@Transactional(readOnly = true)
     public ScheduleDto.ResponseList<List<ScheduleDto.Response>> getListDto(String email) {
 
         Member member = memberService.get(email);
 
+        List<MemberSchedule> memberScheduleList = repository.findAllByMember(member);
+        List<ScheduleDto.Response> memberScheduleResponseList = dtoMapper.memberSchedulesToResponseList(memberScheduleList);
+
         List<StudySchedule> studyScheduleList =
                 member.getScheduleRefs().stream().map(ScheduleRef::getStudySchedule).collect(Collectors.toList());
 
+        List<ScheduleDto.Response> studyScheduleResponseList = dtoMapper.studySchedulesToResponseList(studyScheduleList);
+
         List<ScheduleDto.Response> scheduleDtoList = new ArrayList<>();
-        scheduleDtoList.addAll(dtoMapper.memberSchedulesToResponseList(repository.findAllByMember(member)));
-        scheduleDtoList.addAll(dtoMapper.studySchedulesToResponseList(studyScheduleList));
+        scheduleDtoList.addAll(memberScheduleResponseList);
+        scheduleDtoList.addAll(studyScheduleResponseList);
 
         return new ScheduleDto.ResponseList<>(scheduleDtoList);
     }
 
     /**
      * 스케쥴 삭제
-     * @param scheduleId
-     * @param member
+     * @param scheduleId Schedule ID
+     * @param member Member
      */
     public void delete(Long scheduleId, Member member) {
 
         MemberSchedule findSchedule = get(scheduleId, member);
-
         repository.delete(findSchedule);
     }
 }

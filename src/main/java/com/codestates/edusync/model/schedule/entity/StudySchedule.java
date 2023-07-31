@@ -16,6 +16,7 @@ import static javax.persistence.CascadeType.*;
 @Entity
 @Table
 public class StudySchedule extends Schedule {
+
     @OneToOne(cascade = ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "studyDayOfWeekId")
     private StudyDayOfWeek studyDayOfWeek;

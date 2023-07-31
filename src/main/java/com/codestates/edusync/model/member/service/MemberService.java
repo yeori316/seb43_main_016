@@ -132,8 +132,9 @@ public class MemberService {
      * @param image Image
      */
     public void updateImage(MultipartFile image, String email) {
+        String imageAddress = awsS3Service.uploadImage(image, "/member");
         Member findMember = get(email);
-        findMember.setImage(awsS3Service.uploadImage(image, "/member"));
+        findMember.setImage(imageAddress);
         repository.save(findMember);
     }
 
@@ -145,79 +146,44 @@ public class MemberService {
     @Transactional(readOnly = true)
     public Member get(String email) {
         Optional<Member> optionalMember = repository.findByEmail(email);
-
-        Member findMember = optionalMember.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", email)));
-
-        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", email));
-        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", email));
-        }
-
-        return findMember;
+        return verifyMember(optionalMember);
     }
 
     /**
      * 회원 조회 - 닉네임
-     * @param nickName
-     * @return
+     * @param nickName nickName
+     * @return Member
      */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
-
         Optional<Member> optionalMember = repository.findByNickName(nickName);
-
-        Member findMember = optionalMember.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", nickName)));
-
-        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", nickName));
-        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", nickName));
-        }
-
-        return findMember;
+        return verifyMember(optionalMember);
     }
 
     /**
      * 회원 조회 - 닉네임
-     * @param nickName
-     * @return
+     * @param nickName nickName
+     * @return Member
      */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName, String email) {
-
         get(email);
-
         Optional<Member> optionalMember = repository.findByNickName(nickName);
-
-        Member findMember = optionalMember.orElseThrow(() ->
-                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND, String.format("%s 회원을 찾을 수 없습니다.", nickName)));
-
-        if (findMember.getStatus().equals(Member.Status.SLEEP)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 현재 휴먼 계정입니다.", nickName));
-        } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER, String.format("%s는 이미 탈퇴한 계정입니다.", nickName));
-        }
-
-        return findMember;
+        return verifyMember(optionalMember);
     }
-
-
 
     /**
      * 스터디 가입 신청자 | 스터디 멤버 리스트 조회
-     * @param studyId
-     * @param email
-     * @return
+     * @param studyId Study id
+     * @param email email
+     * @return Member NickName List
      */
     @Transactional(readOnly = true)
     public MemberDto.MembersResponse getStudyMembers(Long studyId, String email, Boolean isMember) {
 
         get(email);
-        Study study =
-                studyRepository.findById(studyId)
+
+        Study study = studyRepository.findById(studyId)
                         .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
 
         List<StudyJoin> studyJoinList;
@@ -225,8 +191,7 @@ public class MemberService {
         if (Boolean.TRUE.equals(isMember)) {
             studyJoinList = joinRepository.findAllByStudyAndIsApprovedIsTrue(study);
 
-            studyJoinList
-                    .stream()
+            studyJoinList.stream()
                     .filter(e -> e.getMember().getEmail().equals(email))
                     .findFirst()
                     .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
@@ -299,11 +264,11 @@ public class MemberService {
         } else {
             if (findMember.getStatus().equals(Member.Status.ACTIVE)) {
                 throw new BusinessLogicException(ExceptionCode.MEMBER_ALREADY_ACTIVE);
+            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
+                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
             } else if (findMember.getStatus().equals(Member.Status.SLEEP)) {
                 findMember.setStatus(Member.Status.ACTIVE);
                 repository.save(findMember);
-            } else if (findMember.getStatus().equals(Member.Status.QUIT)) {
-                throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
             }
         }
     }
@@ -318,12 +283,6 @@ public class MemberService {
         findMember.setDeletedAt(LocalDateTime.now());
         repository.save(findMember);
     }
-
-
-
-
-
-
 
     /**
      * 닉네임 체크
@@ -348,4 +307,20 @@ public class MemberService {
         return passwordEncoder.encode(password);
     }
 
+    /**
+     * 멤버 조회 검증
+     * @param optionalMember OptionalMember
+     * @return Member
+     */
+    public Member verifyMember(Optional<Member> optionalMember) {
+
+        Member findMember = optionalMember.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+
+        if (findMember.getStatus().equals(Member.Status.SLEEP) || findMember.getStatus().equals(Member.Status.QUIT)) {
+            throw new BusinessLogicException(ExceptionCode.INACTIVE_MEMBER);
+        }
+
+        return findMember;
+    }
 }

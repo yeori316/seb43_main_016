@@ -13,18 +13,18 @@ public interface MemberDtoMapper {
 
     /**
      * 스터디 멤버 리스트 & 가입 대기 리스트 매퍼
-     * @param studyJoinList
-     * @return
+     * @param studyJoinList MemberList
+     * @return nickNameList
      */
     default MemberDto.MembersResponse studyJoinListToStudyMembersDto(List<StudyJoin> studyJoinList) {
 
         MemberDto.MembersResponse studyMembersDto = new MemberDto.MembersResponse();
 
-        studyMembersDto.setNickName(
-                studyJoinList.stream()
-                        .map(e -> e.getMember().getNickName())
-                        .collect(Collectors.toList())
-        );
+        List<String> nickNameList = studyJoinList.stream()
+                .map(e -> e.getMember().getNickName())
+                .collect(Collectors.toList());
+
+        studyMembersDto.setNickName(nickNameList);
 
         return studyMembersDto;
     }

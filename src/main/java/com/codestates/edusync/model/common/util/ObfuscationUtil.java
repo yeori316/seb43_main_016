@@ -9,6 +9,11 @@ import java.util.Base64;
 @Component
 public class ObfuscationUtil {
 
+    /**
+     * Base64 Decoder
+     * @param message Encoded Message
+     * @return Decoded Message
+     */
     public String getDecoded(String message) {
         String decode = URLDecoder.decode(message, StandardCharsets.UTF_8);
         Base64.Decoder decoder = Base64.getDecoder();
