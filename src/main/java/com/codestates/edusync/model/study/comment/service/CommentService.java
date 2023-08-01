@@ -31,71 +31,67 @@ public class CommentService {
 
     /**
      * 댓글 등록
-     * @param studyId
-     * @param comment
-     * @param email
+     * @param comment Comment
      */
-    public void create(Member member, Study study, Comment comment) {
-
-        comment.setMember(member);
-        comment.setStudy(study);
-
+    public void create(Comment comment) {
         repository.save(comment);
     }
 
     /**
      * 댓글 수정
-     * @param email
-     * @param studyId
-     * @param comment
-     * @return
+     * @param member Member
+     * @param study Study
+     * @param comment Comment
      */
-    public Comment update(Member member, Study study, Comment comment) {
-
-        Comment findComment = repository.findById(comment.getId()).orElseThrow( () ->
-                        new BusinessLogicException(COMMENT_NOT_FOUND));
-
-        if(!findComment.getStudy().getId().equals(study.getId())) {
-            throw new BusinessLogicException(COMMENT_NOT_FOUND);
-        }
-
-        if(!findComment.getStudy().getLeader().getId().equals(member.getId()) &&
-                !findComment.getMember().getId().equals(member.getId()) ) {
-            throw new BusinessLogicException(INVALID_PERMISSION);
-        }
-
+    public void update(Member member, Study study, Comment comment) {
+        Comment findComment = verifyComment(member, study, comment.getId());
         Optional.ofNullable(comment.getContent()).ifPresent(findComment::setContent);
-        
-        return repository.save(findComment);
+        repository.save(findComment);
     }
 
     /**
      * 댓글 리스트 조회
-     * @param studyId
-     * @return
+     * @param study Study
+     * @param member Member
+     * @param page Page
+     * @param size Size
+     * @return Commnet Page
      */
     @Transactional(readOnly = true)
     public CommentPageDto.ResponsePage<List<CommentDto.Response>> getListDto(Study study, Member member, Integer page, Integer size) {
 
-        Page<Comment> commentPages =
-                repository.findAllByStudyId(study.getId(), PageRequest.of(page, size, Sort.by("id").descending()));
+        Long studyId = study.getId();
+        String email = member.getEmail();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
 
-        return new CommentPageDto.ResponsePage<>(
-                dtoMapper.commentsToResponesList(commentPages.getContent(), member.getEmail()),
-                commentPages);
+        Page<Comment> commentPages = repository.findAllByStudyId(studyId, pageRequest);
+        List<Comment> commentList = commentPages.getContent();
+        List<CommentDto.Response> commentResponseList = dtoMapper.commentsToResponesList(commentList, email);
+
+        return new CommentPageDto.ResponsePage<>(commentResponseList, commentPages);
     }
-
 
     /**
      * 댓글 삭제
-     * @param studyId
-     * @param commentId
-     * @param email
+     * @param member Member
+     * @param study Study
+     * @param commentId Comment ID
      */
     public void delete(Member member, Study study, Long commentId) {
+        Comment findComment = verifyComment(member, study, commentId);
+        repository.delete(findComment);
+    }
 
-        Comment findComment = repository.findById(commentId).orElseThrow( () ->
-                        new BusinessLogicException(COMMENT_NOT_FOUND));
+    /**
+     * Comment 검증
+     * @param member Member
+     * @param study Study
+     * @param commentId Comment ID
+     * @return Comment
+     */
+    private Comment verifyComment(Member member, Study study, Long commentId) {
+        Comment findComment = repository.findById(commentId)
+                .orElseThrow( () -> new BusinessLogicException(COMMENT_NOT_FOUND));
 
         if( !findComment.getStudy().getId().equals(study.getId()) ) {
             throw new BusinessLogicException(COMMENT_NOT_FOUND);
@@ -106,6 +102,7 @@ public class CommentService {
             throw new BusinessLogicException(INVALID_PERMISSION);
         }
 
-        repository.delete(findComment);
+        return findComment;
     }
+
 }
