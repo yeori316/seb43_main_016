@@ -150,7 +150,7 @@ public class MemberController {
         }
 
         String email = authentication.getName();
-        Boolean isMember = Boolean.parseBoolean(getDecoded(enIsMember));
+        Boolean isMember = getDecoded(enIsMember).equals("true");
         MemberDto.MembersResponse response = service.getStudyMembers(studyId, email, isMember);
         return ResponseEntity.ok(response);
     }
