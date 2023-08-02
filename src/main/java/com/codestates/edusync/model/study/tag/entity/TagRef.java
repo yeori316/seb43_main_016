@@ -14,6 +14,7 @@ import javax.persistence.*;
 @Entity
 @Table
 public class TagRef extends BaseEntity {
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "studyId")
     private Study study;
