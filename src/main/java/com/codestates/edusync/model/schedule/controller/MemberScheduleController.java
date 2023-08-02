@@ -40,8 +40,7 @@ public class MemberScheduleController {
     @PostMapping
     public ResponseEntity<String> post(Authentication authentication,
                                        @Valid @RequestBody ScheduleDto.Post postDto) {
-        String email = authentication.getName();
-        Member member = memberService.get(email);
+        Member member = getMember(authentication);
         MemberSchedule schedule = mapper.schedulePostToSchedule(postDto, member);
         service.create(schedule);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -59,8 +58,7 @@ public class MemberScheduleController {
                                         @PathVariable("schedule-id") String enScheduleId,
                                         @Valid @RequestBody ScheduleDto.Patch patchDto) {
         Long scheduleId = verifySchedule(enScheduleId);
-        String email = authentication.getName();
-        Member member = memberService.get(email);
+        Member member = getMember(authentication);
         MemberSchedule memberSchedule = mapper.schedulePatchToSchedule(patchDto);
         service.update(scheduleId, member, memberSchedule);
         return ResponseEntity.ok().build();
@@ -76,8 +74,7 @@ public class MemberScheduleController {
     public ResponseEntity<ScheduleDto.Response> get(Authentication authentication,
                                                     @PathVariable("schedule-id") String enScheduleId) {
         Long scheduleId = verifySchedule(enScheduleId);
-        String email = authentication.getName();
-        Member member = memberService.get(email);
+        Member member = getMember(authentication);
         ScheduleDto.Response response = service.getDto(scheduleId, member);
         return ResponseEntity.ok(response);
     }
@@ -105,8 +102,7 @@ public class MemberScheduleController {
     public ResponseEntity<String> delete(Authentication authentication,
                                          @PathVariable("schedule-id") String enScheduleId) {
         Long scheduleId = verifySchedule(enScheduleId);
-        String email = authentication.getName();
-        Member member = memberService.get(email);
+        Member member = getMember(authentication);
         service.delete(scheduleId, member);
         return ResponseEntity.ok().build();
     }
@@ -127,11 +123,20 @@ public class MemberScheduleController {
      */
     private Long verifySchedule(String enScheduleId) {
 
-        Long scheduleId = Long.parseLong(getDecoded(enScheduleId));
+        long scheduleId = Long.parseLong(getDecoded(enScheduleId));
 
         if (scheduleId < 1) {
             throw new BusinessLogicException(ExceptionCode.SCHEDULE_NOT_FOUND);
         }
         return scheduleId;
+    }
+
+    /**
+     * Member 조회
+     * @param authentication Authentication
+     * @return Member
+     */
+    private Member getMember(Authentication authentication) {
+        return memberService.get(authentication.getName());
     }
 }

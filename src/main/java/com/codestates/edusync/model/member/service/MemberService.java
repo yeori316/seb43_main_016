@@ -226,7 +226,6 @@ public class MemberService {
     public Map<String, String> getProvider(String email){
 
         Member findMember = get(email);
-
         String provider;
 
         if(findMember.getProvider()==Member.Provider.LOCAL){
