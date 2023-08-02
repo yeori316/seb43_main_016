@@ -18,6 +18,12 @@ import java.util.Optional;
 public class LikesService {
     private final LikesRepository repository;
 
+    /**
+     * 좋아요 설정 및 해제
+     * @param member Member
+     * @param study Study
+     * @return long
+     */
     public Long patch(Member member, Study study) {
 
         Optional<Likes> optionalLikes = repository.findByMemberAndStudy(member, study);
@@ -31,6 +37,12 @@ public class LikesService {
         return optionalLikes.isEmpty() ? 1L : 0L;
     }
 
+    /**
+     * 좋아요 추가
+     * @param member Member
+     * @param study Study
+     * @return Like
+     */
     public Likes newLikes(Member member, Study study) {
         Likes likes = new Likes();
         likes.setMember(member);

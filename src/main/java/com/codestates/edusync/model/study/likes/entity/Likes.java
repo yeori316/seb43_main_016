@@ -15,6 +15,7 @@ import javax.persistence.*;
 @Entity
 @Table
 public class Likes extends BaseEntity {
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")
     private Member member;
