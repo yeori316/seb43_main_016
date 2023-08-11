@@ -16,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -133,8 +132,8 @@ public class StudyJoinController {
 
     /**
      * 스터디 멤버 강퇴
-     * @param authentication
-     * @param studyId
+     * @param authentication Authentication
+     * @param enStudyId
      * @param deleteDto
      * @return
      */
