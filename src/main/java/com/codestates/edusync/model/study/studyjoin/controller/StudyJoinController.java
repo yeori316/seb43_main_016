@@ -133,7 +133,7 @@ public class StudyJoinController {
     /**
      * 스터디 멤버 강퇴
      * @param authentication Authentication
-     * @param enStudyId
+     * @param enStudyId Encrypted StudyId
      * @param deleteDto
      * @return
      */
