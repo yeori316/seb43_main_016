@@ -12,6 +12,8 @@ public enum SortOrder {
     SORT_BY_MODIFIED_AT("modified", "modifiedAt"), // 수정 일자
     SORT_BY_RECRUITED("status", "isRecruited"), // 모집 상태별
     SORT_BY_VIEWS("views", "views"), // 조회 순
+    SORT_BY_TITLE("title", "studyName"), // 제목 순
+    SORT_BY_LIKE("like", "likesList") // 좋아요 순
     ;
 
     private final String order;
