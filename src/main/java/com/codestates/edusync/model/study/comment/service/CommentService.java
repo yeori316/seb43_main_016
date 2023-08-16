@@ -19,46 +19,30 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static com.codestates.edusync.exception.ExceptionCode.*;
+import static com.codestates.edusync.exception.ExceptionCode.COMMENT_NOT_FOUND;
+import static com.codestates.edusync.exception.ExceptionCode.INVALID_PERMISSION;
 
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class CommentService {
+public class CommentService implements CommentServiceInterface {
     private final CommentRepository repository;
     private final CommentDtoMapper dtoMapper;
 
-    /**
-     * 댓글 등록
-     * @param comment Comment
-     */
     public void create(Comment comment) {
         repository.save(comment);
     }
 
-    /**
-     * 댓글 수정
-     * @param member Member
-     * @param study Study
-     * @param comment Comment
-     */
     public void update(Member member, Study study, Comment comment) {
         Comment findComment = verifyComment(member, study, comment.getId());
         Optional.ofNullable(comment.getContent()).ifPresent(findComment::setContent);
         repository.save(findComment);
     }
 
-    /**
-     * 댓글 리스트 조회
-     * @param study Study
-     * @param member Member
-     * @param page Page
-     * @param size Size
-     * @return Commnet Page
-     */
     @Transactional(readOnly = true)
-    public CommentPageDto.ResponsePage<List<CommentDto.Response>> getListDto(Study study, Member member, Integer page, Integer size) {
+    public CommentPageDto.ResponsePage<List<CommentDto.Response>> getListDto(
+            Study study, Member member, Integer page, Integer size) {
 
         Long studyId = study.getId();
         String email = member.getEmail();
@@ -71,12 +55,6 @@ public class CommentService {
         return new CommentPageDto.ResponsePage<>(commentResponseList, commentPages);
     }
 
-    /**
-     * 댓글 삭제
-     * @param member Member
-     * @param study Study
-     * @param commentId Comment ID
-     */
     public void delete(Member member, Study study, Long commentId) {
         Comment findComment = verifyComment(member, study, commentId);
         repository.delete(findComment);
@@ -104,5 +82,4 @@ public class CommentService {
 
         return findComment;
     }
-
 }

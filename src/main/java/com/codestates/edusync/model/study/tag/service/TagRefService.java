@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class TagRefService {
+public class TagRefService implements TagRefServiceInterface {
     private final TagRefRepository repository;
 
     public void delete(Study study) {

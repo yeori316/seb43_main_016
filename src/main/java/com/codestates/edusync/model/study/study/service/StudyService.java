@@ -2,9 +2,9 @@ package com.codestates.edusync.model.study.study.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.service.AwsS3Service;
+import com.codestates.edusync.model.common.service.AwsS3ServiceInterface;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.member.service.MemberServiceInterface;
 import com.codestates.edusync.model.schedule.entity.DayOfWeek;
 import com.codestates.edusync.model.schedule.entity.StudySchedule;
 import com.codestates.edusync.model.study.likes.entity.Likes;
@@ -17,7 +17,7 @@ import com.codestates.edusync.model.study.study.repository.StudyRepository;
 import com.codestates.edusync.model.study.study.utils.SortOrder;
 import com.codestates.edusync.model.study.studyjoin.entity.StudyJoin;
 import com.codestates.edusync.model.study.studyjoin.repository.StudyJoinRepository;
-import com.codestates.edusync.model.study.tag.service.TagRefService;
+import com.codestates.edusync.model.study.tag.service.TagRefServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,20 +35,15 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class StudyService {
+public class StudyService implements StudyServiceInterface {
     private final StudyRepository repository;
     private final StudyJoinRepository joinRepository;
     private final LikesRepository likesRepository;
-    private final MemberService memberService;
-    private final TagRefService tagRefService;
-    private final AwsS3Service awsS3Service;
+    private final MemberServiceInterface memberService;
+    private final TagRefServiceInterface tagRefService;
+    private final AwsS3ServiceInterface awsS3Service;
     private final StudyDtoMapper dtoMapper;
 
-
-    /**
-     * 스터디 등록
-     * @param study Study
-     */
     public void create(Study study) {
 
         Optional<Study> optionalStudy = repository.findByStudyName(study.getStudyName());
@@ -59,11 +54,6 @@ public class StudyService {
         repository.save(study);
     }
 
-    /**
-     * 스터디 수정
-     * @param study Study
-     * @param email String
-     */
     public void update(Study study, String email) {
 
         Study findStudy = verifyLeader(study.getId(), email);
@@ -104,12 +94,6 @@ public class StudyService {
         repository.save(findStudy);
     }
 
-    /**
-     * 스터디 이미지 수정
-     * @param email Email
-     * @param studyId Study ID
-     * @param image Image File
-     */
     public void updateImage(Long studyId, String email, MultipartFile image) {
 
         Study findStudy = verifyLeader(studyId, email);
@@ -119,11 +103,6 @@ public class StudyService {
         repository.save(findStudy);
     }
 
-    /**
-     * 스터디 모집 상태 수정
-     * @param email Email
-     * @param studyId Study ID
-     */
     public Boolean updateStatus(Long studyId, String email) {
 
         Study findStudy = verifyLeader(studyId, email);
@@ -132,12 +111,6 @@ public class StudyService {
         return repository.save(findStudy).getIsRecruited();
     }
 
-    /**
-     * 스터디 리더 수정
-     * @param studyId Study ID
-     * @param email Email
-     * @param newLeaderNickName new Leaader NickName
-     */
     public void updateLeader(Long studyId, String email, String newLeaderNickName) {
 
         getMember(email);
@@ -151,27 +124,14 @@ public class StudyService {
         repository.save(findStudy);
     }
 
-    /**
-     * 스터디 조회
-     * @param studyId Study ID
-     * @return Study
-     */
     @Transactional(readOnly = true)
     public Study get(Long studyId) {
-
         return repository.findById(studyId)
                 .orElseThrow(() -> new BusinessLogicException(ExceptionCode.STUDY_NOT_FOUND));
     }
 
-    /**
-     * 스터디 조회 DTO 반환
-     * @param studyId Study ID
-     * @param email Email
-     * @return Study
-     */
     @Transactional(readOnly = true)
     public StudyDto.Response getDto(Long studyId, String email) {
-
         // 멤버 확인용
         Member member = getMember(email);
         Study study = get(studyId);
@@ -188,13 +148,6 @@ public class StudyService {
         return dtoMapper.studyToResponse(study, cnt, isLeader, isLike);
     }
 
-    /**
-     * 스터디 리스트 조회 DTO 반환
-     * @param page Page Number
-     * @param size Page Size
-     * @param sort Page Sort Order
-     * @return Study Page
-     */
     @Transactional(readOnly = true)
     public StudyPageDto.ResponsePage<List<StudyDto.Summary>> getPageDto(Integer page, Integer size, String sort) {
 
@@ -208,11 +161,6 @@ public class StudyService {
         return new StudyPageDto.ResponsePage<>(responseList, studyPage);
     }
 
-    /**
-     * 리더인 스터디 리스트 조회 DTO 반환
-     * @param email Email
-     * @return Study List
-     */
     @Transactional(readOnly = true)
     public StudyPageDto.ResponseList<List<StudyDto.Summary>> getLeaderStudyListDto(String email) {
 
@@ -223,11 +171,6 @@ public class StudyService {
         return new StudyPageDto.ResponseList<>(studyResponseList);
     }
 
-    /**
-     * 가입 신청된 | 가입된 스터디 리스트 조회 DTO 반환
-     * @param email Email
-     * @return Study List
-     */
     @Transactional(readOnly = true)
     public StudyPageDto.ResponseList<List<StudyDto.Summary>> getJoinListDto(String email, Boolean isMember) {
 
@@ -251,12 +194,6 @@ public class StudyService {
         return new StudyPageDto.ResponseList<>(StudyResponseList);
     }
 
-
-    /**
-     * 스터디 삭제
-     * @param studyId Study ID
-     * @param email Email
-     */
     public void delete(Long studyId, String email) {
         verifyLeader(studyId, email);
         repository.deleteById(studyId);

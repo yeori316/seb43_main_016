@@ -4,14 +4,14 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.member.service.MemberServiceInterface;
 import com.codestates.edusync.model.study.comment.dto.CommentDto;
 import com.codestates.edusync.model.study.comment.dto.CommentPageDto;
 import com.codestates.edusync.model.study.comment.entity.Comment;
 import com.codestates.edusync.model.study.comment.mapper.CommentMapper;
-import com.codestates.edusync.model.study.comment.service.CommentService;
+import com.codestates.edusync.model.study.comment.service.CommentServiceInterface;
 import com.codestates.edusync.model.study.study.entity.Study;
-import com.codestates.edusync.model.study.study.service.StudyService;
+import com.codestates.edusync.model.study.study.service.StudyServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,19 +28,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/comment")
 @Validated
-public class CommentController {
+public class CommentController implements CommentControllerInterface {
     private final CommentMapper mapper;
-    private final CommentService service;
-    private final MemberService memberService;
-    private final StudyService studyService;
+    private final CommentServiceInterface service;
+    private final MemberServiceInterface memberService;
+    private final StudyServiceInterface studyService;
     private final ObfuscationUtil obfuscationUtil;
 
-    /**
-     * 댓글 등록
-     * @param enStudyId Encoded Study ID
-     * @param postDto CommentPostDto
-     * @return String
-     */
     @PostMapping("/{study-id}")
     public ResponseEntity<String> post(Authentication authentication,
                                        @PathVariable("study-id") String enStudyId,
@@ -54,13 +48,6 @@ public class CommentController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    /**
-     * 댓글 수정
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param patchDto CommentPatchDto
-     * @return String
-     */
     @PatchMapping("/{study-id}")
     public ResponseEntity<String> patch(Authentication authentication,
                                         @PathVariable("study-id") String enStudyId,
@@ -74,14 +61,6 @@ public class CommentController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 댓글 리스트 조회
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param enPage Encoded Page Number
-     * @param enSize Encoded Page Size
-     * @return CommentPage
-     */
     @GetMapping("/{study-id}")
     public ResponseEntity<CommentPageDto.ResponsePage<List<CommentDto.Response>>> getList(
             Authentication authentication,
@@ -102,13 +81,6 @@ public class CommentController {
         return ResponseEntity.ok(commentPage);
     }
 
-    /**
-     * 댓글 삭제
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param enCommentId Encoded Commnet ID
-     * @return String
-     */
     @DeleteMapping("/{study-id}/{comment-id}")
     public ResponseEntity<String> delete(Authentication authentication,
                                          @PathVariable("study-id") String enStudyId,
@@ -164,6 +136,4 @@ public class CommentController {
     private Study getStudy(Long studyId) {
         return studyService.get(studyId);
     }
-
-
 }

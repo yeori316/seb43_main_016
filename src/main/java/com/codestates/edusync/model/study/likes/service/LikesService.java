@@ -15,15 +15,9 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class LikesService {
+public class LikesService implements LikesServiceInterface {
     private final LikesRepository repository;
 
-    /**
-     * 좋아요 설정 및 해제
-     * @param member Member
-     * @param study Study
-     * @return long
-     */
     public Long patch(Member member, Study study) {
 
         Optional<Likes> optionalLikes = repository.findByMemberAndStudy(member, study);
@@ -39,8 +33,9 @@ public class LikesService {
 
     /**
      * 좋아요 추가
+     *
      * @param member Member
-     * @param study Study
+     * @param study  Study
      * @return Like
      */
     public Likes newLikes(Member member, Study study) {

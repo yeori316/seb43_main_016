@@ -3,7 +3,7 @@ package com.codestates.edusync.model.schedule.service;
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.member.service.MemberServiceInterface;
 import com.codestates.edusync.model.schedule.dto.ScheduleDto;
 import com.codestates.edusync.model.schedule.entity.MemberDayOfWeek;
 import com.codestates.edusync.model.schedule.entity.MemberSchedule;
@@ -25,25 +25,15 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class MemberScheduleService {
+public class MemberScheduleService implements ScheduleServiceInterface {
     private final MemberScheduleRepository repository;
-    private final MemberService memberService;
+    private final MemberServiceInterface memberService;
     private final ScheduleDtoMapper dtoMapper;
 
-    /**
-     * 스케쥴 등록
-     * @param schedule schedule
-     */
     public void create(MemberSchedule schedule) {
         repository.save(schedule);
     }
 
-    /**
-     * 스케쥴 수정
-     * @param scheduleId Schedule ID
-     * @param member Member
-     * @param schedule Schedule
-     */
     public void update(Long scheduleId, Member member, MemberSchedule schedule) {
 
         MemberSchedule findSchedule = repository.findById(scheduleId)
@@ -75,13 +65,6 @@ public class MemberScheduleService {
         repository.save(findSchedule);
     }
 
-
-    /**
-     * 스케쥴 상세 정보 조회
-     * @param scheduleId Schedule ID
-     * @param member Member
-     * @return Member Schedule
-     */
     @Transactional(readOnly = true)
     public MemberSchedule get(Long scheduleId, Member member) {
 
@@ -95,24 +78,12 @@ public class MemberScheduleService {
         return findSchedule;
     }
 
-    /**
-     * 스케쥴 상세 정보 조회
-     * @param scheduleId Schedule ID
-     * @param member Member
-     * @return Schedule
-     */
     @Transactional(readOnly = true)
     public ScheduleDto.Response getDto(Long scheduleId, Member member) {
-
         MemberSchedule findSchedule = get(scheduleId, member);
         return dtoMapper.scheduleToResponse(findSchedule);
     }
 
-    /**
-     * 스케쥴 리스트 조회
-     * @param email email
-     * @return Schedule List
-     */
     public ScheduleDto.ResponseList<List<ScheduleDto.Response>> getListDto(String email) {
 
         Member member = memberService.get(email);
@@ -125,20 +96,10 @@ public class MemberScheduleService {
 
         List<ScheduleDto.Response> studyScheduleResponseList = dtoMapper.studySchedulesToResponseList(studyScheduleList);
 
-        List<ScheduleDto.Response> scheduleDtoList = new ArrayList<>();
-        scheduleDtoList.addAll(memberScheduleResponseList);
-        scheduleDtoList.addAll(studyScheduleResponseList);
-
-        return new ScheduleDto.ResponseList<>(scheduleDtoList);
+        return new ScheduleDto.ResponseList<>(memberScheduleResponseList, studyScheduleResponseList);
     }
 
-    /**
-     * 스케쥴 삭제
-     * @param scheduleId Schedule ID
-     * @param member Member
-     */
     public void delete(Long scheduleId, Member member) {
-
         MemberSchedule findSchedule = get(scheduleId, member);
         repository.delete(findSchedule);
     }

@@ -2,7 +2,7 @@ package com.codestates.edusync.model.member.service;
 
 import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
-import com.codestates.edusync.model.common.service.AwsS3Service;
+import com.codestates.edusync.model.common.service.AwsS3ServiceInterface;
 import com.codestates.edusync.model.member.dto.MemberDto;
 import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.mapper.MemberDtoMapper;
@@ -31,20 +31,16 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class MemberService {
+public class MemberService implements MemberServiceInterface {
     private final MemberRepository repository;
     private final StudyRepository studyRepository;
     private final StudyJoinRepository joinRepository;
-    private final AwsS3Service awsS3Service;
+    private final AwsS3ServiceInterface awsS3Service;
     private final CustomAuthorityUtils authorityUtils;
     private final PasswordEncoder passwordEncoder;
     private final NickNameCheckUtil nickNameCheckUtil;
     private final MemberDtoMapper dtoMapper;
 
-    /**
-     * 회원 가입
-     * @param member Member
-     */
     public void create(Member member) {
 
         // 이메일 중복 체크
@@ -74,11 +70,6 @@ public class MemberService {
         repository.save(member);
     }
 
-    /**
-     * 닉네임 수정
-     * @param member Member
-     * @param email Email
-     */
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateNickName(Member member, String email) {
 
@@ -96,11 +87,6 @@ public class MemberService {
         repository.save(findMember);
     }
 
-    /**
-     * 패스워드 수정
-     * @param member Member
-     * @param email Email
-     */
     public void updatePassword(Member member, String email) {
 
         Member findMember = get(email);
@@ -115,22 +101,12 @@ public class MemberService {
         repository.save(findMember);
     }
 
-    /**
-     * 자기소개 수정
-     * @param member Member
-     * @param email Email
-     */
     public void updateAboutMe(Member member, String email) {
         Member findMember = get(email);
         Optional.ofNullable(member.getAboutMe()).ifPresent(findMember::setAboutMe);
         repository.save(findMember);
     }
 
-    /**
-     * 이미지 수정
-     * @param email Email
-     * @param image Image
-     */
     public void updateImage(MultipartFile image, String email) {
         String imageAddress = awsS3Service.uploadImage(image, "/member");
         Member findMember = get(email);
@@ -138,33 +114,18 @@ public class MemberService {
         repository.save(findMember);
     }
 
-    /**
-     * 회원 조회 - 이메일
-     * @param email email
-     * @return Member
-     */
     @Transactional(readOnly = true)
     public Member get(String email) {
         Optional<Member> optionalMember = repository.findByEmail(email);
         return verifyMember(optionalMember);
     }
 
-    /**
-     * 회원 조회 - 닉네임
-     * @param nickName nickName
-     * @return Member
-     */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName) {
         Optional<Member> optionalMember = repository.findByNickName(nickName);
         return verifyMember(optionalMember);
     }
 
-    /**
-     * 회원 조회 - 닉네임
-     * @param nickName nickName
-     * @return Member
-     */
     @Transactional(readOnly = true)
     public Member getNickName(String nickName, String email) {
         get(email);
@@ -172,12 +133,6 @@ public class MemberService {
         return verifyMember(optionalMember);
     }
 
-    /**
-     * 스터디 가입 신청자 | 스터디 멤버 리스트 조회
-     * @param studyId Study id
-     * @param email email
-     * @return Member NickName List
-     */
     @Transactional(readOnly = true)
     public MemberDto.MembersResponse getStudyMembers(Long studyId, String email, Boolean isMember) {
 
@@ -206,22 +161,11 @@ public class MemberService {
         return dtoMapper.studyJoinListToStudyMembersDto(studyJoinList);
     }
 
-    /**
-     * 패스워드 인증
-     * @param password String
-     * @param email String
-     * @return boolean
-     */
     @Transactional(readOnly = true)
     public boolean checkPassword(String email, String password){
         return passwordEncoder.matches(password, get(email).getPassword());
     }
 
-    /**
-     * 회원 가입 구분
-     * @param email String
-     * @return Map<String, String>
-     */
     @Transactional(readOnly = true)
     public Map<String, String> getProvider(String email){
 
@@ -246,11 +190,6 @@ public class MemberService {
         return response;
     }
 
-    /**
-     * 휴먼 회원 해제
-     * @param email String
-     * @param password String
-     */
     public void updateStatus(String email, String password){
         // 회원 인지 확인
         Optional<Member> optionalMember = repository.findByEmail(email);
@@ -272,10 +211,6 @@ public class MemberService {
         }
     }
 
-    /**
-     * 회원 탈퇴(소프트 삭제)
-     * @param email String
-     */
     public void delete(String email) {
         Member findMember = get(email);
         findMember.setStatus(Member.Status.QUIT);
@@ -283,10 +218,7 @@ public class MemberService {
         repository.save(findMember);
     }
 
-    /**
-     * 닉네임 체크
-     * @param member Member
-     */
+    @Transactional(readOnly = true)
     public void nickNameCheck(Member member) {
 
         String nickName = member.getNickName();
@@ -297,21 +229,21 @@ public class MemberService {
         nickNameCheckUtil.validated(nickName);
     }
 
-    /**
-     * 패스워드 암호화
-     * @param password Password
-     * @return String
-     */
-    public String passEncoding(String password) {
+   /**
+    * 패스워드 암호화
+    * @param password Password
+    * @return String
+    */
+    private String passEncoding(String password) {
         return passwordEncoder.encode(password);
     }
 
-    /**
-     * 멤버 조회 검증
-     * @param optionalMember OptionalMember
-     * @return Member
-     */
-    public Member verifyMember(Optional<Member> optionalMember) {
+   /**
+    * 멤버 조회 검증
+    * @param optionalMember OptionalMember
+    * @return Member
+    */
+    private Member verifyMember(Optional<Member> optionalMember) {
 
         Member findMember = optionalMember.orElseThrow(() ->
                 new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));

@@ -7,56 +7,64 @@ import com.codestates.edusync.model.member.entity.Member;
 import com.codestates.edusync.model.member.service.MemberServiceInterface;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.service.StudyServiceInterface;
-import com.codestates.edusync.model.study.studyjoin.service.StudyJoinServiceInterface;
+import com.codestates.edusync.model.study.studyjoin.dto.StudyJoinDto;
+import com.codestates.edusync.model.study.studyjoin.service.StudyLeaderServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/join")
+@RequestMapping("/leader")
 @Validated
-public class StudyJoinController implements StudyJoinControllerInterface {
-    private final StudyJoinServiceInterface service;
+public class StudyLeaderController implements StudyLeaderControllerInterface {
+    private final StudyLeaderServiceInterface service;
     private final MemberServiceInterface memberService;
     private final StudyServiceInterface studyService;
     private final ObfuscationUtil obfuscationUtil;
 
-    @PostMapping("/{study-id}")
-    public ResponseEntity<String> post(Authentication authentication,
-                                       @PathVariable("study-id") String enStudyId) {
+    @PatchMapping("/{study-id}/apply")
+    public ResponseEntity<String> patch(Authentication authentication,
+                                        @PathVariable("study-id") String enStudyId,
+                                        @Valid @RequestBody StudyJoinDto.Dto patchDto) {
 
         Long studyId = verifyId(enStudyId);
         Study study = studyService.get(studyId);
         Member member = memberService.get(authentication.getName());
-        service.create(study, member);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @DeleteMapping("/wait/{study-id}")
-    public ResponseEntity<String> delete(Authentication authentication,
-                                         @PathVariable("study-id") String enStudyId) {
-
-        Long studyId = verifyId(enStudyId);
-        Study study = studyService.get(studyId);
-        Member member = memberService.get(authentication.getName());
-        service.delete(study ,member);
+        Member nickNameMember = memberService.getNickName(patchDto.getNickName());
+        service.update(study, member, nickNameMember);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{study-id}")
-    public ResponseEntity<String> deleteJoin(Authentication authentication,
-                                             @PathVariable("study-id") String enStudyId) {
+    @DeleteMapping("/{study-id}/reject")
+    public ResponseEntity<String> deleteReject(Authentication authentication,
+                                               @PathVariable("study-id") String enStudyId,
+                                               @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
 
         Long studyId = verifyId(enStudyId);
         Study study = studyService.get(studyId);
         Member member = memberService.get(authentication.getName());
-        service.deleteJoin(study, member);
+        Member nickNameMember = memberService.getNickName(deleteDto.getNickName());
+        service.reject(study, member,nickNameMember);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{study-id}/kick")
+    public ResponseEntity<String> deleteKick(Authentication authentication,
+                                             @PathVariable("study-id") String enStudyId,
+                                             @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
+
+        Long studyId = verifyId(enStudyId);
+        Study study = studyService.get(studyId);
+        Member member = memberService.get(authentication.getName());
+        Member nickNameMember = memberService.getNickName(deleteDto.getNickName());
+        service.kick(study, member, nickNameMember);
         return ResponseEntity.ok().build();
     }
 

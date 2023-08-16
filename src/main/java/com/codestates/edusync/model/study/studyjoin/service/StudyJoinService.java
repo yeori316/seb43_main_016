@@ -17,14 +17,9 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class StudyJoinService {
+public class StudyJoinService implements StudyJoinServiceInterface {
     private final StudyJoinRepository repository;
 
-    /**
-     * 스터디 가입 신청
-     * @param study
-     * @param member
-     */
     public void create(Study study, Member member) {
 
         if (Boolean.FALSE.equals(study.getIsRecruited())) {
@@ -49,11 +44,6 @@ public class StudyJoinService {
         repository.save(studyJoin);
     }
 
-    /**
-     * 스터디 가입 신청 취소
-     * @param study
-     * @param member
-     */
     public void delete(Study study, Member member) {
 
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), member.getId());
@@ -63,11 +53,6 @@ public class StudyJoinService {
         repository.delete(findJoin.get());
     }
 
-    /**
-     * 스터디 탈퇴
-     * @param study
-     * @param member
-     */
     public void deleteJoin(Study study, Member member) {
 
         if (study.getLeader() == member) throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
@@ -75,65 +60,6 @@ public class StudyJoinService {
         Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(study.getId(), member.getId());
 
         if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_NOT_FOUND);
-
-        repository.delete(findJoin.get());
-    }
-
-
-    /**
-     * 스터디 가입 승인
-     * @param study
-     * @param leader
-     * @param newMember
-     */
-    public void update(Study study, Member leader, Member newMember) {
-
-        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
-        }
-
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
-
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_NOT_FOUND);
-
-        findJoin.get().setIsApproved(true);
-        repository.save(findJoin.get());
-    }
-
-    /**
-     * 스터디 가입 거부
-     * @param study
-     * @param leader
-     * @param newMember
-     */
-    public void reject(Study study, Member leader, Member newMember) {
-
-        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
-        }
-
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedFalse(study.getId(), newMember.getId());
-
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.STUDY_JOIN_CANDIDATE_NOT_FOUND);
-
-        repository.delete(findJoin.get());
-    }
-
-    /**
-     * 스터디 멤버 강퇴
-     * @param study
-     * @param leader
-     * @param member
-     */
-    public void kick(Study study, Member leader, Member member) {
-
-        if (!study.getLeader().getEmail().equals(leader.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.INVALID_PERMISSION);
-        }
-
-        Optional<StudyJoin> findJoin = repository.findByStudyIdAndMemberIdAndIsApprovedTrue(study.getId(), member.getId());
-
-        if (findJoin.isEmpty()) throw new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND);
 
         repository.delete(findJoin.get());
     }

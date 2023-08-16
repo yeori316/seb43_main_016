@@ -18,6 +18,7 @@ public interface ScheduleDtoMapper {
     default ScheduleDto.Response scheduleToResponse(MemberSchedule schedule) {
         ScheduleDto.Response response = new ScheduleDto.Response();
 
+        response.setId(schedule.getId());
         response.setTitle(schedule.getTitle());
         response.setDescription(schedule.getDescription());
         response.setStartDate(schedule.getStartDate());
@@ -33,6 +34,7 @@ public interface ScheduleDtoMapper {
     default ScheduleDto.Response scheduleToResponse(StudySchedule schedule) {
         ScheduleDto.Response response = new ScheduleDto.Response();
 
+        response.setId(schedule.getId());
         response.setTitle(schedule.getTitle());
         response.setDescription(schedule.getDescription());
         response.setStartDate(schedule.getStartDate());

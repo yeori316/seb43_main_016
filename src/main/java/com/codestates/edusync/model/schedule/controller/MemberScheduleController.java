@@ -4,11 +4,11 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
+import com.codestates.edusync.model.member.service.MemberServiceInterface;
 import com.codestates.edusync.model.schedule.dto.ScheduleDto;
 import com.codestates.edusync.model.schedule.entity.MemberSchedule;
 import com.codestates.edusync.model.schedule.mapper.ScheduleMapper;
-import com.codestates.edusync.model.schedule.service.MemberScheduleService;
+import com.codestates.edusync.model.schedule.service.ScheduleServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,18 +25,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/schedule")
 @Validated
-public class MemberScheduleController {
+public class MemberScheduleController implements ScheduleControllerInterface {
     private final ScheduleMapper mapper;
-    private final MemberScheduleService service;
-    private final MemberService memberService;
+    private final ScheduleServiceInterface service;
+    private final MemberServiceInterface memberService;
     private final ObfuscationUtil obfuscationUtil;
 
-    /**
-     * 스케쥴 등록
-     * @param postDto SchedulePostDto
-     * @param authentication Authentication
-     * @return String
-     */
     @PostMapping
     public ResponseEntity<String> post(Authentication authentication,
                                        @Valid @RequestBody ScheduleDto.Post postDto) {
@@ -46,13 +40,6 @@ public class MemberScheduleController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    /**
-     * 스케쥴 수정
-     * @param authentication Authentication
-     * @param enScheduleId Encoding Schedule ID
-     * @param patchDto SchedulePatchDto
-     * @return String
-     */
     @PatchMapping("/{schedule-id}")
     public ResponseEntity<String> patch(Authentication authentication,
                                         @PathVariable("schedule-id") String enScheduleId,
@@ -64,12 +51,6 @@ public class MemberScheduleController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 스케쥴 상세 정보 조회
-     * @param authentication Authentication
-     * @param enScheduleId Encoded Schedule ID
-     * @return Schedule
-     */
     @GetMapping("/{schedule-id}")
     public ResponseEntity<ScheduleDto.Response> get(Authentication authentication,
                                                     @PathVariable("schedule-id") String enScheduleId) {
@@ -79,11 +60,6 @@ public class MemberScheduleController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 스케쥴 리스트 조회
-     * @param authentication Authentication
-     * @return Schedule List
-     */
     @GetMapping("list")
     public ResponseEntity<ScheduleDto.ResponseList<List<ScheduleDto.Response>>> getList(Authentication authentication) {
 
@@ -92,12 +68,6 @@ public class MemberScheduleController {
         return ResponseEntity.ok(responseList);
     }
 
-    /**
-     * 스케쥴 삭제
-     * @param authentication Authentication
-     * @param enScheduleId Encoded Schedule Id
-     * @return String
-     */
     @DeleteMapping("/{schedule-id}")
     public ResponseEntity<String> delete(Authentication authentication,
                                          @PathVariable("schedule-id") String enScheduleId) {
@@ -112,7 +82,7 @@ public class MemberScheduleController {
      * @param message Encoded Message
      * @return Decoded Message
      */
-    public String getDecoded(String message) {
+    private String getDecoded(String message) {
         return obfuscationUtil.getDecoded(message);
     }
 

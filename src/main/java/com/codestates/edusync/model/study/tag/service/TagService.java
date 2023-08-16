@@ -21,15 +21,10 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class TagService {
+public class TagService implements TagServiceInterface {
     private final TagRepository repository;
     private final StudyDtoMapper studyDtoMapper;
 
-    /**
-     * 태그 등록
-     * @param value Tag Value
-     * @return Tag Value
-     */
     public Tag create(String value) {
         Tag findTag = get(value);
         if (findTag == null) {
@@ -40,29 +35,14 @@ public class TagService {
         return findTag;
     }
 
-    /**
-     * 태그 조회
-     * @param value Tag Value
-     * @return Tag Value
-     */
     public Tag get(String value) {
         return repository.findByTagValue(value);
     }
 
-    /**
-     * 태그 리스트 조회
-     * @param tags Tag Value List
-     * @return Tag List
-     */
     public List<Tag> getList(List<String> tags) {
         return tags.stream().map(this::create).collect(Collectors.toList());
     }
 
-    /**
-     * 태그로 스터디 검색
-     * @param value Tag Value
-     * @return Study List
-     */
     public StudyPageDto.ResponseList<List<StudyDto.Summary>> search(String value) {
 
         Tag tag = get(value);

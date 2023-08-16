@@ -4,15 +4,15 @@ import com.codestates.edusync.exception.BusinessLogicException;
 import com.codestates.edusync.exception.ExceptionCode;
 import com.codestates.edusync.model.common.util.ObfuscationUtil;
 import com.codestates.edusync.model.member.entity.Member;
-import com.codestates.edusync.model.member.service.MemberService;
-import com.codestates.edusync.model.study.likes.service.LikesService;
+import com.codestates.edusync.model.member.service.MemberServiceInterface;
+import com.codestates.edusync.model.study.likes.service.LikesServiceInterface;
 import com.codestates.edusync.model.study.study.dto.StudyDto;
 import com.codestates.edusync.model.study.study.dto.StudyPageDto;
 import com.codestates.edusync.model.study.study.entity.Study;
 import com.codestates.edusync.model.study.study.mapper.StudyMapper;
-import com.codestates.edusync.model.study.study.service.StudyService;
+import com.codestates.edusync.model.study.study.service.StudyServiceInterface;
 import com.codestates.edusync.model.study.tag.entity.Tag;
-import com.codestates.edusync.model.study.tag.service.TagService;
+import com.codestates.edusync.model.study.tag.service.TagServiceInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,20 +32,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/study")
 @Validated
-public class StudyController {
+public class StudyController implements StudyControllerInterface {
     private final StudyMapper mapper;
-    private final StudyService service;
-    private final MemberService memberService;
-    private final TagService tagService;
-    private final LikesService likesService;
+    private final StudyServiceInterface service;
+    private final MemberServiceInterface memberService;
+    private final TagServiceInterface tagService;
+    private final LikesServiceInterface likesService;
     private final ObfuscationUtil obfuscationUtil;
 
-    /**
-     * 스터디 등록
-     * @param authentication Authentication
-     * @param postDto StudyPostDto
-     * @return URI
-     */
     @PostMapping
     public ResponseEntity<String> post(Authentication authentication,
                                        @Valid @RequestBody StudyDto.Post postDto) {
@@ -57,13 +51,6 @@ public class StudyController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    /**
-     * 스터디 수정
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param patchDto StudyPatchDto
-     * @return String
-     */
     @PatchMapping("/{study-id}")
     public ResponseEntity<String> patch(Authentication authentication,
                                         @PathVariable("study-id") String enStudyId,
@@ -77,13 +64,6 @@ public class StudyController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 스터디 이미지 수정
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param image Image File
-     * @return String
-     */
     @PatchMapping("/{study-id}/image")
     public ResponseEntity<String> patchImage(Authentication authentication,
                                              @PathVariable("study-id") String enStudyId,
@@ -95,12 +75,6 @@ public class StudyController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 스터디 모집 상태 수정
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @return Study Status
-     */
     @PatchMapping("/{study-id}/status")
     public ResponseEntity<StudyDto.ResponseStatus> patchStatus(Authentication authentication,
                                                                @PathVariable("study-id") String enStudyId) {
@@ -112,13 +86,6 @@ public class StudyController {
         return ResponseEntity.ok(studyStatus);
     }
 
-    /**
-     * 스터디 리더 수정
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @param patchLeaderDto new Leader NickName
-     * @return String
-     */
     @PatchMapping("/{study-id}/leader")
     public ResponseEntity<String> patchLeader(Authentication authentication,
                                               @PathVariable("study-id") String enStudyId,
@@ -131,12 +98,6 @@ public class StudyController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 스터디 조회
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @return Study Response
-     */
     @GetMapping("/{study-id}")
     public ResponseEntity<StudyDto.Response> get(Authentication authentication,
                                                  @PathVariable("study-id") String enStudyId) {
@@ -147,13 +108,6 @@ public class StudyController {
         return ResponseEntity.ok(studyResponse);
     }
 
-    /**
-     * 스터디 리스트
-     * @param enPage Encoded Page Number
-     * @param enSize Encoded Page Size
-     * @param sort Sort Order
-     * @return Study Page
-     */
     @GetMapping("/list")
     public ResponseEntity<StudyPageDto.ResponsePage<List<StudyDto.Summary>>> getList(
             @RequestParam("p") String enPage,
@@ -168,11 +122,6 @@ public class StudyController {
         return ResponseEntity.ok(studyPage);
     }
 
-    /**
-     * 리더로 운영 중인 스터디 리스트 조회
-     * @param authentication Authentication
-     * @return Study Page
-     */
     @GetMapping("/leader/list")
     public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> getLeaderList(
             Authentication authentication) {
@@ -183,11 +132,6 @@ public class StudyController {
         return ResponseEntity.ok(studyPage);
     }
 
-    /**
-     * 가입 신청된 | 가입된 스터디 리스트 조회
-     * @param authentication Authentication
-     * @return Study Page
-     */
     @GetMapping("/join/list")
     public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> getJoinList(
             Authentication authentication,
@@ -200,12 +144,6 @@ public class StudyController {
         return ResponseEntity.ok(studyPage);
     }
 
-    /**
-     * 스터디 좋아요
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @return Long
-     */
     @PatchMapping("/{study-id}/likes")
     public Long patchLikes(Authentication authentication,
                           @PathVariable("study-id") String enStudyId) {
@@ -217,11 +155,6 @@ public class StudyController {
         return likesService.patch(member, study);
     }
 
-    /**
-     * 태그 스터디 검색
-     * @param enTag Encoded Tag Value
-     * @return Study Page
-     */
     @GetMapping("/search")
     public ResponseEntity<StudyPageDto.ResponseList<List<StudyDto.Summary>>> get(
             @RequestParam("t") String enTag) {
@@ -232,12 +165,6 @@ public class StudyController {
         return ResponseEntity.ok(studyPage);
     }
 
-    /**
-     * 스터디 삭제
-     * @param authentication Authentication
-     * @param enStudyId Encoded Study ID
-     * @return String
-     */
     @DeleteMapping("/{study-id}")
     public ResponseEntity<String> delete(Authentication authentication,
                                          @PathVariable("study-id") String enStudyId) {

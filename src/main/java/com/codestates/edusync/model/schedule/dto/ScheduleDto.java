@@ -72,6 +72,8 @@ public class ScheduleDto {
     @Getter
     @Setter
     public static class Response {
+        private Long id;
+
         private String title;
 
         private String description;
@@ -99,5 +101,6 @@ public class ScheduleDto {
     @Setter
     public static class ResponseList<T> {
         private T schedule;
+        private T study;
     }
 }

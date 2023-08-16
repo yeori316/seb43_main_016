@@ -15,19 +15,13 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class AwsS3Service {
+public class AwsS3Service implements AwsS3ServiceInterface {
 
     private final AmazonS3 amazonS3;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    /**
-     * S3 이미지 저장 로직
-     * @param file 이미지 파일
-     * @param bucketPath S3 이미지 저장 Bucket
-     * @return 이미지 저장 주소
-     */
     public String uploadImage(MultipartFile file, String bucketPath) {
         String fileName = createFileName(file.getOriginalFilename());
 
@@ -43,21 +37,11 @@ public class AwsS3Service {
         return getFileUrl(fileName, bucket.concat(bucketPath));
     }
 
-    /**
-     * S3에 저장할 파일명
-     * @param originalFileName 원본 파일명
-     * @return S3에 저장할 파일명
-     */
-    private String createFileName(String originalFileName) {
+    public String createFileName(String originalFileName) {
         return UUID.randomUUID().toString().concat(getFileExtension(originalFileName));
     }
 
-    /**
-     * 파일 포맷 유효성 검사
-     * @param fileName file name
-     * @return 파일명
-     */
-    private String getFileExtension(String fileName) {
+    public String getFileExtension(String fileName) {
 
         String extension;
 
@@ -74,12 +58,6 @@ public class AwsS3Service {
         return extension;
     }
 
-    /**
-     * S3에 이미지 업로드
-     * @param inputStream InputStream
-     * @param objectMetadata Object metadata
-     * @param fileName File name
-     */
     public void uploadFile(InputStream inputStream,
                            ObjectMetadata objectMetadata,
                            String fileName,
@@ -93,12 +71,6 @@ public class AwsS3Service {
 
     }
 
-    /**
-     * 이미지 저장 경로
-     * @param fileName 파일명
-     * @param bucketPath S3 저장 Bucket
-     * @return 이미지 저장 경로
-     */
     public String getFileUrl(String fileName, String bucketPath) {
         return amazonS3.getUrl(bucketPath, fileName).toString();
     }
