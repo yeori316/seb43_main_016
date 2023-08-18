@@ -13,10 +13,10 @@ import javax.validation.Valid;
 public interface StudyLeaderControllerInterface {
     /**
          * 스터디 가입 승인
-         * @param authentication
-         * @param studyId
-         * @param patchDto
-         * @return
+         * @param authentication Authentication
+         * @param enStudyId Encrypted StudyId
+         * @param patchDto StudyJoin Patch DTO
+         * @return String
          */
         @PatchMapping("/{study-id}/apply")
         ResponseEntity<String> patch(Authentication authentication,
@@ -25,10 +25,10 @@ public interface StudyLeaderControllerInterface {
 
         /**
          * 스터디 가입 거부
-         * @param authentication
-         * @param studyId
-         * @param deleteDto
-         * @return
+         * @param authentication Authentication
+         * @param enStudyId Encrypted StudyId
+         * @param deleteDto StudyJoin Delete DTO
+         * @return String
          */
         @DeleteMapping("/{study-id}/reject")
         ResponseEntity<String> deleteReject(Authentication authentication,
@@ -39,8 +39,8 @@ public interface StudyLeaderControllerInterface {
          * 스터디 멤버 강퇴
          * @param authentication Authentication
          * @param enStudyId Encrypted StudyId
-         * @param deleteDto
-         * @return
+         * @param deleteDto StudyJoin Delete DTO
+         * @return String
          */
         @DeleteMapping("/{study-id}/kick")
         ResponseEntity<String> deleteKick(Authentication authentication,

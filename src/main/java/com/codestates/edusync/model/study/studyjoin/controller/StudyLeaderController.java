@@ -33,7 +33,6 @@ public class StudyLeaderController implements StudyLeaderControllerInterface {
     public ResponseEntity<String> patch(Authentication authentication,
                                         @PathVariable("study-id") String enStudyId,
                                         @Valid @RequestBody StudyJoinDto.Dto patchDto) {
-
         Long studyId = verifyId(enStudyId);
         Study study = studyService.get(studyId);
         Member member = memberService.get(authentication.getName());
@@ -46,7 +45,6 @@ public class StudyLeaderController implements StudyLeaderControllerInterface {
     public ResponseEntity<String> deleteReject(Authentication authentication,
                                                @PathVariable("study-id") String enStudyId,
                                                @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
-
         Long studyId = verifyId(enStudyId);
         Study study = studyService.get(studyId);
         Member member = memberService.get(authentication.getName());
@@ -59,7 +57,6 @@ public class StudyLeaderController implements StudyLeaderControllerInterface {
     public ResponseEntity<String> deleteKick(Authentication authentication,
                                              @PathVariable("study-id") String enStudyId,
                                              @Valid @RequestBody StudyJoinDto.Dto deleteDto) {
-
         Long studyId = verifyId(enStudyId);
         Study study = studyService.get(studyId);
         Member member = memberService.get(authentication.getName());

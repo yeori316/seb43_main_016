@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface StudyJoinControllerInterface {
     /**
          * 스터디 가입 신청
-         * @param authentication
-         * @param studyId
-         * @return
+         * @param authentication Authentication
+         * @param enStudyId Encrypted Study ID
+         * @return String
          */
         @PostMapping("/{study-id}")
         ResponseEntity<String> post(Authentication authentication,
@@ -19,9 +19,9 @@ public interface StudyJoinControllerInterface {
 
         /**
          * 스터디 가입 신청 취소
-         * @param authentication
-         * @param studyId
-         * @return
+         * @param authentication Authentication
+         * @param enStudyId Encrypted Study ID
+         * @return String
          */
         @DeleteMapping("/wait/{study-id}")
         ResponseEntity<String> delete(Authentication authentication,
@@ -29,9 +29,9 @@ public interface StudyJoinControllerInterface {
 
         /**
          * 스터디 탈퇴
-         * @param authentication
-         * @param studyId
-         * @return
+         * @param authentication Authentication
+         * @param enStudyId Encrypted Study ID
+         * @return String
          */
         @DeleteMapping("/{study-id}")
         ResponseEntity<String> deleteJoin(Authentication authentication,
